@@ -8,43 +8,29 @@
 <script>
 
 $(document).ready(function(){
+    var map_width_px = 3477 * {{ zoom_rule }};
+    var map_height_px = 1769 * {{ zoom_rule }};
+    var real_loc_to_pix = 0.0821;
+    var margin = 5
+
     $(".btn11").click(function(){
-        //var firstname = $("#firstname").val();
-        //var lastname = $("#lastname").val();
-
         $.post("/name", {"firstname": "aaa", 'lastname': "bbb"}, function(data, status){
-			//alert("name: " + data.x + "  age:" + data.y);
-			var c=document.getElementById("myCanvas");
 
-            var ctx=c.getContext("2d");
-            var img=new Image();
-            img.src="/static/img/floor3.jpg";
-            ctx.drawImage(img, 5, 5, 3477 * {{ zoom_rule }}, 1769 * {{ zoom_rule }});
-
-            var img_people=new Image();
-            img_people.src="/static/img/people.jpg";
-            var real_loc_to_pix = 0.0821;
-            ctx.drawImage(img_people, 5+ data.x*{{zoom_rule}}*real_loc_to_pix, 5+data.y*{{zoom_rule}}*real_loc_to_pix );
             $("#coordinate").text("(x,y):(" + data.x + "," + data.y + ")" );
+
+            $("#map").animate({
+                left:margin ,
+                top:margin,
+                height:map_height_px,
+                width:map_width_px
+             })
+
+            $("#people").animate({
+                left:real_loc_to_pix * data.x * {{ zoom_rule }} + margin,
+                top:real_loc_to_pix * data.y * {{ zoom_rule }} + margin
+             })
         });
     });
-
-    var c=document.getElementById("myCanvas");
-    var ctx=c.getContext("2d");
-    var img=new Image();
-    img.src="/static/img/floor3.jpg";
-    img.onload = function()
-    {
-        ctx.drawImage(img, 5, 5, 3477 * {{ zoom_rule }}, 1769 * {{ zoom_rule }});
-    }
-
-    var img_people=new Image();
-    img_people.src="/static/img/people.jpg";
-    var real_loc_to_pix = 0.0821;
-    img_people.onload = function()
-    {
-        ctx.drawImage(img_people, 5+{{ x*zoom_rule}}*real_loc_to_pix, 5+{{ y*zoom_rule }}*real_loc_to_pix );
-    }
 
 });
 
@@ -61,11 +47,15 @@ var t2 = window.setInterval("getPos()", 1000);
 </head>
 <body>
 
-<button class="btn11"; style="background-color:#666666; display:none;">11. send name to flask</button><p id="coordinate">坐标</p><br>
+<button class="btn11"; style="background-color:#666666;display:none">11. send name to flask</button><p id="coordinate">坐标</p><br>
+
 <p><a href="http://www.hezhongsz.com/"><img src="static/img/hzlogo.png"></a> ---Floor3平面图:---</p>
-<canvas id="myCanvas" width="1500" height="800" style="border:1px solid #d3d3d3;">
-您的浏览器不支持 HTML5 canvas 标签。
-</canvas>
+<div id="myCanvas" width="1500" height="800" style="border:1px solid #d3d3d3;">
+    <div id="floor3" width="1450" height="750" style="background:#98bf21;position:absolute;">
+        <img src="/static/img/floor3.jpg" width="1400" height="700" style="position:absolute" id="map" >
+        <img src="/static/img/people.jpg" style="position:absolute" id="people">
+    </div>
+</div>
 
 </body>
 </html>
