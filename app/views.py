@@ -13,6 +13,9 @@ from translate import microsoft_translate
 from config import POSTS_PER_PAGE, MAX_SEARCH_RESULTS, LANGUAGES, DATABASE_QUERY_TIMEOUT
 import random
 
+map_width = 39.023569023569024 * 1000           # unit: mm
+map_height = 19.85409652076319 * 1000           # unit: mm
+
 
 @lm.user_loader
 def load_user(uid):
@@ -281,6 +284,6 @@ def show_all_users():
 def get_pos():
     firstname = request.form['firstname']
     lastname = request.form['lastname']
-    d = {'x': random.randint(30,41000), 'y': random.randint(30,20000)}
+    d = {'x': random.randint(30,int(map_width-500)), 'y': random.randint(30,int(map_height-1500))}
     # print(d)
     return jsonify(d)
