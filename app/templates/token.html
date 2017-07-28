@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title>Lbs Demo</title>
-    <script src="/static/js/jquery.min.js">
-    </script>
+    <script src="/static/js/jquery.min.js"></script>
 <script>
 
 $(document).ready(function(){
     var map_width_px = 3477 * {{ zoom_rule }};
     var map_height_px = 1769 * {{ zoom_rule }};
-    var real_loc_to_pix = 0.0821;
-    var margin = 5
+    //var real_loc_to_pix = 0.0821;
+    var real_loc_to_pix = 0.0891;
+    var margin = 0
 
     $(".btn11").click(function(){
-        $.post("/name", {"firstname": "aaa", 'lastname': "bbb"}, function(data, status){
+        $.post("/name", {"userId": "1918E00103AA"}, function(data, status){
 
             $("#coordinate").text("(x,y):(" + data.x + "," + data.y + ")" );
 
@@ -25,6 +25,7 @@ $(document).ready(function(){
                 width:map_width_px
              })
 
+            $("#people").show();
             $("#people").animate({
                 left:real_loc_to_pix * data.x * {{ zoom_rule }} + margin,
                 top:real_loc_to_pix * data.y * {{ zoom_rule }} + margin
@@ -47,13 +48,14 @@ var t2 = window.setInterval("getPos()", 2000);
 </head>
 <body>
 
-<button class="btn11"; style="background-color:#666666;display:none">11. send name to flask</button><p id="coordinate">坐标</p><br>
+<button class="btn11" style="background-color:#666666;display:none">11. send name to flask</button><p id="coordinate">坐标</p><br>
 
 <p><a href="http://www.hezhongsz.com/"><img src="static/img/hzlogo.png"></a> ---Floor3平面图:---</p>
 <div id="myCanvas" width="1500" height="800" style="border:1px solid #d3d3d3;">
-    <div id="floor3" width="1450" height="750" style="background:#98bf21;position:absolute;">
-        <img src="/static/img/floor3.svg" width="1400" height="700" style="position:absolute" id="map" >
-        <img src="/static/img/people.jpg" style="position:absolute" id="people">
+    <div id="floor3" width="1450" height="750" style="background:#98bf21;position:absolute">
+        <img src="/static/img/floor3.jpg" width="1043.1" height="530.7" style="position:absolute" id="map_background" >
+        <img src="/static/img/floor3.svg" width="1043.1" height="530.7" style="position:absolute" id="map" >
+        <img src="/static/img/people.jpg" style="position:absolute;display:none" id="people">
     </div>
 </div>
 

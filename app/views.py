@@ -13,7 +13,9 @@ from translate import microsoft_translate
 from config import POSTS_PER_PAGE, MAX_SEARCH_RESULTS, LANGUAGES, DATABASE_QUERY_TIMEOUT
 import random
 
-map_width = 39.023569023569024 * 1000           # unit: mm
+# "geoScale":{"x":89.1,"y":89.1}}]
+geo_scale = 0.891
+map_width = 39.023569023569024 * 1000           # unit: mm, map_width(mm) * geo_scale = pix
 map_height = 19.85409652076319 * 1000           # unit: mm
 
 
@@ -282,8 +284,13 @@ def show_all_users():
 
 @app.route('/name', methods=['POST'])
 def get_pos():
-    firstname = request.form['firstname']
-    lastname = request.form['lastname']
-    d = {'x': random.randint(30,int(map_width-500)), 'y': random.randint(30,int(map_height-1500))}
-    # print(d)
-    return jsonify(d)
+    user_id = request.form['userId']
+    ret_loc = {'x': random.randint(30, int(map_width*geo_scale)), 'y': random.randint(30, int(map_height*geo_scale))}
+    # print(ret_loc)
+    hz_location = HzLocation.query.filter(HzLocation.user_id == user_id).order_by(HzLocation.timestamp.desc())
+    for loc in hz_location:  # 如果存在，则获取最新的一个坐标
+        ret_loc['x'] = loc.x
+        ret_loc['y'] = loc.y
+        break
+
+    return jsonify(ret_loc)
