@@ -5,6 +5,7 @@ import urllib2
 import json
 from models import HzToken, HzLocation
 from app import db
+import random
 import logging
 
 log = logging.getLogger('apscheduler.executors.default')
@@ -19,6 +20,10 @@ JOB_INTERVAL = 30       # seconds
 TEST_UID = "1918E00103AA"         # 测试用标签UID
 GEO_SCALE = 0.0891                  # 像素坐标(px) * 10 / 物理坐标(mm) = 89.1%
 CUR_MAP_SCALE = 0.3                 # 当前屏幕地图缩放比例 30%
+HZ_MAP_GEO_WIDTH = 39023.569023569024      # 毫米
+HZ_MAP_GEO_HEIGHT = 19854.09652076319
+# [{"name":"Floor3","mapImage":"Floor3.jpg","mapImageWidth":3477,"mapImageHeight":1769,"geoScale":{"x":89.1,"y":89.1}}]
+HZ_TEST_ADD_POS = False             # 为真，则向数据库随机插入坐标点
 
 
 def job_get_token():
@@ -83,6 +88,15 @@ def job_get_location():
     res = res_data.read()
     obj = json.loads(res)
     if obj["errorCode"] == 0:
+
+        # 测试代码。向数据库随机插入坐标点
+        if HZ_TEST_ADD_POS:
+            test_loc = HzLocation(build_id='', floor_no='', user_id=TEST_UID,
+                                  x=random.randint(20, int(HZ_MAP_GEO_WIDTH)),
+                                  y=random.randint(20, int(HZ_MAP_GEO_HEIGHT)),
+                                  timestamp=datetime.today())
+            db.session.add(test_loc)
+            db.session.commit()
         for item in obj["data"]:
             hz_location = HzLocation(build_id=item["buildId"],
                                      floor_no=item["floorNo"],

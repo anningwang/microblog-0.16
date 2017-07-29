@@ -10,7 +10,6 @@
     $(document).ready(function(){
         var map_width_px = 3477 * {{ zoom_rule }};
         var map_height_px = 1769 * {{ zoom_rule }};
-        //var real_loc_to_pix = 0.0821;
         var real_loc_to_pix = 0.0891;
         var margin = 0
 
@@ -36,44 +35,49 @@
         });
 
         $("#go").click(function(){
+
+                 $("#people").animate({
+                    left:real_loc_to_pix*{{x*zoom_rule }} + margin - 18,
+                    top:real_loc_to_pix *{{ y*zoom_rule }} + margin - 44
+                 })
+
             var loc = $('#loc').val();
             //var loc_text = $('#loc option:selected').val();  //firefox 效果还是取option的值。chrome可以取到真实文本
             //alert("go " + loc + "  text:" + loc_text)
-
             // 未做错误处理。后续需要改正
             $.post("/go", {"location": loc}, function(data, status){
                 var pt_prv, x_prv ,y_prv, i = 0;
                 var svg_pic = '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" version="1.1"> <polyline points="';
+                svg_pic += real_loc_to_pix * {{ x*zoom_rule }} + "," + real_loc_to_pix * {{ y*zoom_rule }} + " ";
                 var json = eval(data); // 数组
+                //alert(1)
                 $.each(json, function (index, item) {
                     // 循环获取数据
                     var pt_name = json[index].pt_name;
                     var x = json[index].x;
                     var y = json[index].y;
                     //alert(pt_name + ": " + x + "," + y);
-                    svg_pic += parseInt(json[index].x*{{ zoom_rule }}) + "," + parseInt(json[index].y*{{ zoom_rule }}) + " ";
+                    svg_pic += parseInt((json[index].x+44/2-2)*{{ zoom_rule }}) + "," + parseInt((json[index].y+44/2-2)*{{ zoom_rule }}) + " ";
                     //<img src="/static/img/road.svg" width="1043.1" height="530.7" style="position:absolute" id="road1">
-                    var pic = '<img src="/static/img/people_bak.jpg" width="';
+                    //var pic = '<img src="/static/img/people_bak.jpg" width="';
 
-                    //alert(pic);
                     if (i != 0) {   // draw path from pt_prv to pt_name
                         //alert(i);
                         if (x_prv - x < 5) {    // 近视认为 x坐标相等，则画竖线
                             //alert("x_prv - x < 5");
                             //alert (Math.abs(1-100));
-                            pic+= 8 + '" height="' + Math.abs(y-y_prv) + '" style="position:absolute" id="road' + i + '">';
+                            //pic+= 8 + '" height="' + Math.abs(y-y_prv) + '" style="position:absolute" id="road' + i + '">';
                         }else{  // 画 横向， 斜线先不考虑。后续需要改进。
                             //alert("not   x_prv - x < 5");
-                            pic+= Math.abs(x - prv_x) + '" height="8" style="position:absolute" id="road' + i + '">';
+                            //pic+= Math.abs(x - prv_x) + '" height="8" style="position:absolute" id="road' + i + '">';
                         }
                         //alert(pic);
-                        $("#path").append(pic);
-                        //alert("ok");
+                        //$("#path").append(pic);
                      }
                      i+= 1;
                      pt_prv = pt_name; x_prv = x; y_prv = y;
                 });
-                svg_pic += '" style="fill:none;stroke:red;stroke-width:16"/> </svg> ';
+                svg_pic += '" style="fill:none;stroke:red;stroke-width:4"/> </svg> ';
                 //alert(svg_pic);
                 $("#path").empty();
                 $("#path").append(svg_pic);
@@ -109,18 +113,18 @@ y= {{ y }}
 
 <div id="txtHint">导航到
     <select id="loc" class="loc" name="locations"  style="font-family:Verdana, Arial, Helvetica, sans-serif;">
-        <option value="13">Room 1 测试区</option>
-        <option value="14">Room 2</option>
-        <option value="15">Room 3</option>
-        <option value="16">Room 4 健身房</option>
-        <option value="17">Room 5</option>
-        <option value="18">Room 6</option>
-        <option value="20">Room 7 演示厅</option>
-        <option value="0">会议室</option>
-        <option value="10">总裁办公室</option>
-        <option value="1">副总办公室1</option>
-        <option value="9">副总办公室2</option>
-        <option value="8">仓库</option>
+        <option value="27">Room 1 测试区</option>
+        <option value="29">Room 2</option>
+        <option value="30">Room 3</option>
+        <option value="31">Room 4 健身房</option>
+        <option value="32">Room 5</option>
+        <option value="33">Room 6</option>
+        <option value="34">Room 7 演示厅</option>
+        <option value="23">会议室</option>
+        <option value="28">总裁办公室</option>
+        <option value="24">副总办公室1</option>
+        <option value="25">副总办公室2</option>
+        <option value="26">仓库</option>
     </select>
     <button class="navigation" id="go">开始导航</button>
 </div>
