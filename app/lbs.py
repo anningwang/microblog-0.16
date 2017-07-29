@@ -16,6 +16,9 @@ h.setFormatter(fmt)
 log.addHandler(h)
 
 JOB_INTERVAL = 30       # seconds
+TEST_UID = "1918E00103AA"         # 测试用标签UID
+GEO_SCALE = 0.0891                  # 像素坐标(px) * 10 / 物理坐标(mm) = 89.1%
+CUR_MAP_SCALE = 0.3                 # 当前屏幕地图缩放比例 30%
 
 
 def job_get_token():

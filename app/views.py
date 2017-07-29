@@ -12,6 +12,8 @@ from guess_language import guessLanguage
 from translate import microsoft_translate
 from config import POSTS_PER_PAGE, MAX_SEARCH_RESULTS, LANGUAGES, DATABASE_QUERY_TIMEOUT
 import random
+from dijkstra import min_dist2, get_nearest_vertex, hz_vertex
+from lbs import TEST_UID
 
 # "geoScale":{"x":89.1,"y":89.1}}]
 geo_scale = 0.891
@@ -249,7 +251,7 @@ def translate():
 @app.route('/token', methods=['POST', 'GET'])
 def gettoken():
     zoom_rule = 0.3
-    mac = "1918E00103AA"
+    mac = TEST_UID
     x = random.randint(30, 42350)
     y = random.randint(30, 21620)
     token = "aa"
@@ -294,3 +296,25 @@ def get_pos():
         break
 
     return jsonify(ret_loc)
+
+
+@app.route('/go', methods=['POST'])
+def get_path():
+    location = int(request.form['location'])
+    px = py = 0
+
+    hz_location = HzLocation.query.filter(HzLocation.user_id == TEST_UID).order_by(HzLocation.timestamp.desc())
+    for loc in hz_location:  # 如果存在，则获取最新的一个坐标
+        px = loc.x
+        py = loc.y
+        break
+
+    pt_from = get_nearest_vertex(px, py)
+    path = min_dist2(pt_from, location)
+    print path
+
+    ret = []
+    for p in path:
+        ret.append(hz_vertex[p])
+
+    return jsonify(ret)

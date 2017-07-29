@@ -1,12 +1,15 @@
 # coding=utf-8
 import json
 from config import FILENAME_VERTEX
+from lbs import GEO_SCALE, CUR_MAP_SCALE
 
-INT_MAX = 999999
+
+INT_MAX = 9999999
 MAX = 100
 rows = 100
 cols = 100
-hz_vertex = []
+hz_vertex = {}              # 格式： { 6 : {"pt_name":6, "x":1468.2507, "y":891},...}
+hz_arc = []                 # 边 [[u1,v1], ... [ux,vx]]
 matrix = [([INT_MAX] * cols) for r in range(rows)]           # 邻接矩阵
 visited = [False] * MAX     # 标记数组
 dist = [0] * MAX            # 源点到顶点i的最短距离
@@ -55,9 +58,12 @@ def load_pos():
     for arc in setting['arc_info']:
         matrix[arc['v1']][arc['v2']] = arc['arc_weight'] + 44
         matrix[arc['v2']][arc['v1']] = arc['arc_weight'] + 44
+        hz_arc.append([arc['v1'], arc['v2']])
+
+    # print len(hz_arc),  hz_arc
 
     for v in setting['ver_list']:
-        hz_vertex.append(v)
+        hz_vertex[v['pt_name']] = v
 
     file_obj.close()
     return vertex_num
@@ -93,5 +99,20 @@ def min_dist2(pt_from, pt_to):
     return ret_list
 
 
-load_pos()
+def distance(x1, y1, x2, y2,):
+    return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
 
+
+def get_nearest_vertex(px, py):
+    ret_vertex = -1     # -1 表示失败。>=0 ，则为合法顶点
+    dd = INT_MAX
+    # print "len(hz_vertex)=", len(hz_vertex), hz_vertex
+    for v in range(vertex_num):
+        d1 = distance(px, py, float(hz_vertex[v]['x'])/GEO_SCALE, float(hz_vertex[v]['y'])/GEO_SCALE)
+        if d1 < dd:
+            dd = d1
+            ret_vertex = v
+
+    return ret_vertex
+
+load_pos()
