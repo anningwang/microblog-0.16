@@ -43,6 +43,7 @@
             // 未做错误处理。后续需要改正
             $.post("/go", {"location": loc}, function(data, status){
                 var pt_prv, x_prv ,y_prv, i = 0;
+                var svg_pic = '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" version="1.1"> <polyline points="';
                 var json = eval(data); // 数组
                 $.each(json, function (index, item) {
                     // 循环获取数据
@@ -50,9 +51,10 @@
                     var x = json[index].x;
                     var y = json[index].y;
                     //alert(pt_name + ": " + x + "," + y);
-
+                    svg_pic += parseInt(json[index].x*{{ zoom_rule }}) + "," + parseInt(json[index].y*{{ zoom_rule }}) + " ";
                     //<img src="/static/img/road.svg" width="1043.1" height="530.7" style="position:absolute" id="road1">
                     var pic = '<img src="/static/img/people_bak.jpg" width="';
+
                     //alert(pic);
                     if (i != 0) {   // draw path from pt_prv to pt_name
                         //alert(i);
@@ -71,6 +73,11 @@
                      i+= 1;
                      pt_prv = pt_name; x_prv = x; y_prv = y;
                 });
+                svg_pic += '" style="fill:none;stroke:red;stroke-width:16"/> </svg> ';
+                //alert(svg_pic);
+                $("#path").empty();
+                $("#path").append(svg_pic);
+
             });
         });
 
@@ -82,7 +89,7 @@
         $(".btn11").click();
     }
 
-    var t2 = window.setInterval("getPos()", 2000);
+    //var t2 = window.setInterval("getPos()", 2000);
 
     </script>
 
@@ -94,8 +101,9 @@ refreshToken = {{ refreshToken }}<br>
 userId = {{ mac }}<br>
 x = {{ x }}<br>
 y= {{ y }}
+<div id="test2" width="1450" height="750">svg</div>
 
-<button class="btn11" style="background-color:#666666;display:none">11. send name to flask</button><p id="coordinate">坐标</p><br>
+<button class="btn11" style="background-color:#666666;display:none">11. send name to flask</button><p id="coordinate">坐标</p><p id="svg_pic">svg_pic</p><br>
 
 <p id="top_panel"><a href="http://www.hezhongsz.com/"><img src="static/img/hzlogo.png"></a> ---Floor3平面图:---
 
@@ -122,7 +130,7 @@ y= {{ y }}
         <!--<img src="/static/img/floor3.jpg" width="1043.1" height="530.7" style="position:absolute" id="map_background" >  -->
         <img src="/static/img/floor3.svg" width="1043.1" height="530.7" style="position:absolute" id="map" >
         <div id="path" width="1450" height="750" style="position:absolute">
-            <img src="/static/img/road.svg" width="300" height="200" style="position:absolute" id="road1">
+            <!--<img src="/static/img/road.svg" width="300" height="200" style="position:absolute" id="road1">  -->
         </div>
         <img src="/static/img/people.jpg" style="position:absolute" id="people">
     </div>
