@@ -46,6 +46,33 @@ $(document).ready(function(){
 
         });
      });
+
+    $(".btn11").click(function(){
+        $.post("/name", {"userId": "1918E00103AA"}, function(data, status){
+
+            $("#coordinate").text("(x,y):(" + data.x + "," + data.y + ")" );
+
+            $("#map").animate({
+                left:margin,
+                top:margin,
+                height:map_height_px,
+                width:map_width_px
+            });
+
+            // 18, 44 是定位图标的 针尖 位置
+            $("#people").animate({
+                left: (real_loc_to_pix * data.x * {{ zoom_rule }} + margin - 18),
+                top: (real_loc_to_pix * data.y * {{ zoom_rule }} + margin - 44)
+            });
+        });
+    });
+
+    $("#people").hide();
+    $("#people").animate({
+        left:x_people,
+        top:y_people
+    }, 10, function() { $("#people").show(); });
+
 });
 
 function imageDemo(svg, x, y) {
@@ -104,8 +131,15 @@ function random(range) {
 	return Math.floor(Math.random() * range);
 }
 
+function getPos()
+{
+    $(".btn11").click();
+}
+
+var t2 = window.setInterval("getPos()", 2000);
 
 </script>
+
 </head>
 <body>
 token = {{ token }}<br>
@@ -145,14 +179,14 @@ y= {{ y }}
     <button id="clear">Clear</button> <button id="export">Export</button>
 </p>
 
-<img src="/static/img/floor3.svg" width="1043.1" height="530.7" style="position:absolute" id="map" >
-<div id="svgbasics">
-    <img src="/static/img/people.jpg" style="position:absolute" id="people" title="1918E00103AA">
+<div id="myCanvas" width="1500" height="800" style="border:1px solid #d3d3d3;">
+    <div id="floor3" width="1450" height="750" style="background:#98bf21;position:absolute">
+        <img src="/static/img/floor3.svg" width="1043.1" height="530.7" style="position:absolute" id="map" >
+        <div id="svgbasics">
+            <img src="/static/img/people.jpg" style="position:absolute" id="people" title="1918E00103AA">
+        </div>
+    </div>
 </div>
-
-<p>
-<div id="svgexport"></div>
-</p>
 
 </body>
 </html>
