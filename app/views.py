@@ -268,7 +268,7 @@ def gettoken():
         y = loc.y
         break
 
-    return render_template('token.html',
+    return render_template('token.html',            # token.html     svgBasec.html
                            token=token,
                            refreshToken=refresh_token,
                            mac=mac,

@@ -1,115 +1,124 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Lbs Demo</title>
-    <script src="/static/js/jquery.min.js"></script>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<title>Lbs Demo</title>
+<link rel="stylesheet" href="/static/js/jquery.svg.package-1.5.0/jquery.svg.css">
+<style>
+#svgbasics { width: 1450px; height: 750px; border: 1px solid #484; position:absolute}
+</style>
+<script src="/static/js/jquery.min.js"></script>
+<script src="/static/js/jquery.svg.package-1.5.0/jquery.svg.js"></script>
+<script>
 
-    <script>
+    // 18, 44 是定位图标的 针尖 位置
+    var margin = 0;
+    var real_loc_to_pix = 0.0891;
+    var x_people = real_loc_to_pix*{{x*zoom_rule }} + margin - 18;
+    var y_people = real_loc_to_pix *{{ y*zoom_rule }} + margin - 44;
+    var map_width_px = 3477 * {{ zoom_rule }};
+    var map_height_px = 1769 * {{ zoom_rule }};
 
-    $(document).ready(function(){
-        var map_width_px = 3477 * {{ zoom_rule }};
-        var map_height_px = 1769 * {{ zoom_rule }};
-        var real_loc_to_pix = 0.0891;
-        var margin = 0
-
-        $(".btn11").click(function(){
-            $.post("/name", {"userId": "1918E00103AA"}, function(data, status){
-
-                $("#coordinate").text("(x,y):(" + data.x + "," + data.y + ")" );
-
-                $("#map").animate({
-                    left:margin ,
-                    top:margin,
-                    height:map_height_px,
-                    width:map_width_px
-                 })
-
-                $("#people").show();
-                // 18, 44 是定位图标的 针尖 位置
-                $("#people").animate({
-                    left:real_loc_to_pix * data.x * {{ zoom_rule }} + margin - 18,
-                    top:real_loc_to_pix * data.y * {{ zoom_rule }} + margin - 44
-                 })
-            });
+$(document).ready(function(){
+    $("#go").click(function(){
+        $("#people").animate({
+            left:x_people,
+            top:y_people
         });
 
-        $("#go").click(function(){
-
-                 $("#people").animate({
-                    left:real_loc_to_pix*{{x*zoom_rule }} + margin - 18,
-                    top:real_loc_to_pix *{{ y*zoom_rule }} + margin - 44
-                 })
-
-            var loc = $('#loc').val();
-            //var loc_text = $('#loc option:selected').val();  //firefox 效果还是取option的值。chrome可以取到真实文本
-            //alert("go " + loc + "  text:" + loc_text)
-            // 未做错误处理。后续需要改正
-            $.post("/go", {"location": loc}, function(data, status){
-                var pt_prv, x_prv ,y_prv, i = 0;
-                var svg_pic = '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" version="1.1"> <polyline points="';
-                svg_pic += real_loc_to_pix * {{ x*zoom_rule }} + "," + real_loc_to_pix * {{ y*zoom_rule }} + " ";
-                var json = eval(data); // 数组
-                //alert(1)
-                $.each(json, function (index, item) {
-                    // 循环获取数据
-                    var pt_name = json[index].pt_name;
-                    var x = json[index].x;
-                    var y = json[index].y;
-                    //alert(pt_name + ": " + x + "," + y);
-                    svg_pic += parseInt((json[index].x+44/2-2)*{{ zoom_rule }}) + "," + parseInt((json[index].y+44/2-2)*{{ zoom_rule }}) + " ";
-                    //<img src="/static/img/road.svg" width="1043.1" height="530.7" style="position:absolute" id="road1">
-                    //var pic = '<img src="/static/img/people_bak.jpg" width="';
-
-                    if (i != 0) {   // draw path from pt_prv to pt_name
-                        //alert(i);
-                        if (x_prv - x < 5) {    // 近视认为 x坐标相等，则画竖线
-                            //alert("x_prv - x < 5");
-                            //alert (Math.abs(1-100));
-                            //pic+= 8 + '" height="' + Math.abs(y-y_prv) + '" style="position:absolute" id="road' + i + '">';
-                        }else{  // 画 横向， 斜线先不考虑。后续需要改进。
-                            //alert("not   x_prv - x < 5");
-                            //pic+= Math.abs(x - prv_x) + '" height="8" style="position:absolute" id="road' + i + '">';
-                        }
-                        //alert(pic);
-                        //$("#path").append(pic);
-                     }
-                     i+= 1;
-                     pt_prv = pt_name; x_prv = x; y_prv = y;
-                });
-                svg_pic += '" style="fill:none;stroke:red;stroke-width:4"/> </svg> ';
-                //alert(svg_pic);
-                $("#path").empty();
-                $("#path").append(svg_pic);
+        // 未做错误处理。后续需要改正
+        var loc = $('#loc').val();
+        $.post("/go", {"location": loc}, function(data, status){
+            var pt_path = [];
+            var i = 0;
+            pt_path[i] = [real_loc_to_pix * {{ x*zoom_rule }}, real_loc_to_pix * {{ y*zoom_rule }}];
+            var json = eval(data); // 数组
+            $.each(json, function (index, item) {
+                // 循环获取数据
+                i++;
+                pt_path[i] = [parseInt((json[index].x+44/2-2)*{{ zoom_rule }}), parseInt((json[index].y+44/2-2)*{{ zoom_rule }})];
 
             });
+            var svg = $('#svgbasics').svg('get');
+            svg.clear();
+            //svg.remove(polyline);
+            svg.polyline(pt_path, {fill: 'none', stroke: 'blue', strokeWidth: 4});
+
         });
+     });
+});
 
-    });
+function imageDemo(svg, x, y) {
+    //svg.describe('This graphic links to an external image');
+    //var img = svg.image(x, y, 41, 51, '/static/img/people.jpg');
+    //svg.title(img, '1918E00103AA');
+    //var link = svg.link('http://www.w3.org/TR/SVG11/');
+}
+
+$(function() {
+	$('#svgbasics').svg({onLoad: drawInitial});
+	$('#rect,#line,#circle,#ellipse').click(drawShape);
+	$('#clear').click(function() {
+		$('#svgbasics').svg('get').clear();
+	});
+	$('#export').click(function() {
+		var xml = $('#svgbasics').svg('get').toSVG();
+		$('#svgexport').html(xml.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'));
+	});
+});
 
 
-    function getPos()
-    {
-        $(".btn11").click();
-    }
+function drawInitial(svg) {
+	//svg.circle(75, 75, 50, {fill: 'none', stroke: 'red', strokeWidth: 3});
+	//var g = svg.group({stroke: 'black', strokeWidth: 2});
+	//svg.line(g, 15, 75, 135, 75);
+	//svg.line(g, 75, 15, 75, 135);
+    imageDemo(svg, x_people, y_people);
+    svg.text(52, 76, 'SVG哈哈。你好');
+}
 
-    //var t2 = window.setInterval("getPos()", 2000);
+var colours = ['purple', 'red', 'orange', 'yellow', 'lime', 'green', 'blue', 'navy', 'black'];
 
-    </script>
+function drawShape() {
+	var shape = this.id;
+	var svg = $('#svgbasics').svg('get');
+	if (shape == 'rect') {
+		svg.rect(random(300), random(200), random(100) + 100, random(100) + 100,
+			{fill: colours[random(9)], stroke: colours[random(9)], strokeWidth: random(5) + 1});
+	}
+	else if (shape == 'line') {
+		svg.line(random(400), random(300), random(400), random(300),
+			{stroke: colours[random(9)], strokeWidth: random(5) + 1});
+	}
+	else if (shape == 'circle') {
+		svg.circle(random(300) + 50, random(200) + 50, random(80) + 20,
+			{fill: colours[random(9)], stroke: colours[random(9)], strokeWidth: random(5) + 1});
+	}
+	else if (shape == 'ellipse') {
+		svg.ellipse(random(300) + 50, random(200) + 50, random(80) + 20, random(80) + 20,
+			{fill: colours[random(9)], stroke: colours[random(9)], strokeWidth: random(5) + 1});
+	}
+}
 
+function random(range) {
+	return Math.floor(Math.random() * range);
+}
+
+
+</script>
 </head>
 <body>
-
 token = {{ token }}<br>
 refreshToken = {{ refreshToken }}<br>
 userId = {{ mac }}<br>
 x = {{ x }}<br>
 y= {{ y }}
-<div id="test2" width="1450" height="750">svg</div>
 
-<button class="btn11" style="background-color:#666666;display:none">11. send name to flask</button><p id="coordinate">坐标</p><p id="svg_pic">svg_pic</p><br>
+<div id="svgexport"></div>
 
-<p id="top_panel"><a href="http://www.hezhongsz.com/"><img src="static/img/hzlogo.png"></a> ---Floor3平面图:---
+<button class="btn11" style="background-color:#666666;display:none">11. send name to flask</button><p id="coordinate">坐标</p><br>
+
+<p id="top_panel"><a href="http://www.hezhongsz.com/"><img src="static/img/hzlogo.png"></a>Floor3平面图
 
 <div id="txtHint">导航到
     <select id="loc" class="loc" name="locations"  style="font-family:Verdana, Arial, Helvetica, sans-serif;">
@@ -129,16 +138,21 @@ y= {{ y }}
     <button class="navigation" id="go">开始导航</button>
 </div>
 </p>
-<div id="myCanvas" width="1500" height="800" style="border:1px solid #d3d3d3;">
-    <div id="floor3" width="1450" height="750" style="background:#98bf21;position:absolute">
-        <!--<img src="/static/img/floor3.jpg" width="1043.1" height="530.7" style="position:absolute" id="map_background" >  -->
-        <img src="/static/img/floor3.svg" width="1043.1" height="530.7" style="position:absolute" id="map" >
-        <div id="path" width="1450" height="750" style="position:absolute">
-            <!--<img src="/static/img/road.svg" width="300" height="200" style="position:absolute" id="road1">  -->
-        </div>
-        <img src="/static/img/people.jpg" style="position:absolute" id="people">
-    </div>
+
+<p>
+    <button id="rect">Add rectangle</button> <button id="line">Add line</button>
+    <button id="circle">Add circle</button> <button id="ellipse">Add ellipse</button>
+    <button id="clear">Clear</button> <button id="export">Export</button>
+</p>
+
+<img src="/static/img/floor3.svg" width="1043.1" height="530.7" style="position:absolute" id="map" >
+<div id="svgbasics">
+    <img src="/static/img/people.jpg" style="position:absolute" id="people" title="1918E00103AA">
 </div>
+
+<p>
+<div id="svgexport"></div>
+</p>
 
 </body>
 </html>
