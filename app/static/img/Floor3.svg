@@ -16,7 +16,7 @@
    width="3477"
    height="1769"
    viewBox="0 0 3477 1769"
-   sodipodi:docname="Floor3_bak.svg"
+   sodipodi:docname="Floor3.svg"
    inkscape:version="0.92.1 r15371"
    inkscape:export-filename="D:\Softwares\GitHub_file\microblog-0.16\app\static\img\Floor3_Inkscape.svg.png"
    inkscape:export-xdpi="96"
@@ -30,7 +30,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -80,12 +80,12 @@
      id="namedview3692"
      showgrid="false"
      inkscape:zoom="0.5"
-     inkscape:cx="1252.3231"
+     inkscape:cx="1126.2773"
      inkscape:cy="917.67489"
      inkscape:window-x="1672"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer4" />
+     inkscape:current-layer="layer15" />
   <g
      inkscape:groupmode="layer"
      id="layer2"
@@ -748,7 +748,7 @@
     <path
        id="arc18-19"
        transform="rotate(90)"
-       style="opacity:0.5;fill:#f4d7d7;stroke-width:0.26624456;fill-opacity:1"
+       style="opacity:0.5;fill:#c6d9ec;stroke-width:0.26624456;fill-opacity:1"
        d="m 810.4798,-2985.2495 h 80.52023 v 44 H 810.4798 Z m -98.96411,0 h 54.96413 v 44 h -54.96413 z m -236.51566,175.426 v -131.426 h 44 v 131.426 z m -3e-5,111.1726 v -67.1726 h 44 v 67.1726 z m 0,243.7041 v -199.704 h 44 v 199.704 z m 44,256.6973 h 372 v 44 H 519 Z m 372,-535.075 0,-207.925 h 44 l 0,207.925 z m 0,535.075 v -491.075 h 44 v 491.075 z m 0,295.9988 v -251.9988 h 44 v 251.9988 z m 165,807.1278 v -163.1278 h 44 v 163.1278 z m 0,102.11204 v -58.11214 h 44 v 58.11214 z M 675.13452,-597.25079 H 891 v 44 H 675.13452 Z M 187,-1302.2507 v -166.0001 h 44 v 166.0001 z m 704,0 v -166.0001 h 44 v 166.0001 z m 44,-600 h 720 v 44 H 935 Z M 766.4798,-2985.2495 v -173 h 44 v 173 z m -98.96411,0 v -173 h 44 v 173 z m -302.1995,-86.8834 134.98704,94.8868 -25.30314,35.9965 -134.98704,-94.8868 z m -55.31616,262.3094 h 165 v 44 h -165 z m -3e-5,111.1726 h 165 v 44 H 310 Z m 0,243.7041 h 165 v 44 H 310 Z m 625,-278.3777 h 165 v 44 H 935 Z m 165,1638.2016 h 165 v 44 h -165 z m 0,102.11204 h 165 v 44 h -165 z m 0,395.76007 h 165 v 44 h -165 z m -468.86548,217 v -173 h 44 v 173 z m -444.13452,0 v -173 h 44 v 173 z M 519,-2985.2495 h 148.5157 v 44 H 519 Z m -44,787 0,-212.6973 h 44 v 212.6973 z m 460,1600.99871 h 120.9999 v 44 H 935 Z m 0,-704.99991 h 121 v 44 H 935 Z m 121,704.99991 v -351.76007 h 44 v 351.76007 z m -825,0 h 400.13452 v 44 H 231 Z m 0,-704.99991 h 660 v 44 H 231 Z m 660,704.99991 0,-661.00001 h 44 l 0,661.00001 z m -704,0 0,-661.00001 h 44 l 0,661.00001 z m 704,-914.99991 v -346 h 44 v 346 z m -660,-685.9988 h 244 v 44 H 231 Z m 0,685.9988 h 660 v 44 H 231 Z m -44,0 0,-641.9988 h 44 l 0,641.9988 z" />
     <flowRoot
        xml:space="preserve"
@@ -1126,7 +1126,7 @@
            style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:53.33333206px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'" /></flowRegion><flowPara
          id="flowPara416-0-6-1-4">26</flowPara></flowRoot>    <path
        id="hz-34"
-       style="opacity:0.5;fill:#f4d7d7;stroke-width:0.19681332;fill-opacity:1"
+       style="opacity:0.5;fill:#c6d9ec;stroke-width:0.19681332;fill-opacity:1"
        d="m 2689.3245,1100 h 44 v 44 h -44 z m 468.925,-333.5202 h 44 v 44 h -44 z m 0,-98.96411 h 44 v 44 h -44 z M 3036.1365,296.013 h 44 v 44 h -44 z m -270.313,-30.01297 h 44 v 44 h -44 z M 2654.6509,266 h 44 v 44 h -44 z m -243.7041,0 h 44 v 44 h -44 z m -1359.8239,999 h 44 v 44 h -44 z m -102.11204,0 h 44 v 44 h -44 z m -395.76007,0 h 44 v 44 h -44 z m -217,-633.86548 h 44 v 44 h -44 z m 0,-444.13452 h 44 v 44 h -44 z M 2941.2495,667.51569 h 44 v 44 h -44 z M 2154.2495,475 h 44 v 44 h -44 z m 256.6973,0 h 44 v 44 h -44 z m 243.7041,0 h 44 v 44 h -44 z m 111.1726,3e-5 h 44 v 44 h -44 z m 175.426,0 h 44 v 44 h -44 z m 0,291.47977 h 44 v 44 h -44 z m 0,124.5202 h 44 v 44 h -44 z m -251.925,0 h 44 v 44 h -44 z m -535.075,0 h 44 v 44 h -44 z m -295.9988,0 h 44 v 44 h -44 z m -390,0 h 44 v 44 h -44 z m -210,0 h 44 v 44 h -44 z m -207.1278,165 h 44 v 44 h -44 z m 207.1278,0 h 44 v 44 h -44 z m -309.23984,0 h 44 v 44 h -44 z m -395.76007,0 h 44 v 44 h -44 z m 0,-165 h 44 v 44 h -44 z m 0,-259.86548 h 44 v 44 h -44 z M 2154.2495,187 h 44 v 44 h -44 z m -685.9988,0 h 44 v 44 h -44 z m -210,0 h 44 v 44 h -44 z m -704.99991,0 h 44 v 44 h -44 z" />
     <flowRoot
        xml:space="preserve"

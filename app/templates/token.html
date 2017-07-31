@@ -5,7 +5,8 @@
 <title>Lbs Demo</title>
 <link rel="stylesheet" href="/static/js/jquery.svg.package-1.5.0/jquery.svg.css">
 <style>
-#svgbasics { width: 1450px; height: 750px; border: 1px solid #484; position:absolute}
+#svg_map{ width: 1450px; height: 750px; border: 1px solid #484; position:absolute}
+#svg_path{ width: 1450px; height: 750px; position:absolute}
 </style>
 <script src="/static/js/jquery.min.js"></script>
 <script src="/static/js/jquery.svg.package-1.5.0/jquery.svg.js"></script>
@@ -39,14 +40,22 @@ $(document).ready(function(){
                 pt_path[i] = [parseInt((json[index].x+44/2-2)*{{ zoom_rule }}), parseInt((json[index].y+44/2-2)*{{ zoom_rule }})];
 
             });
-            var svg = $('#svgbasics').svg('get');
+            var svg = $('#svg_path').svg('get');
             svg.clear();
-            //svg.remove(polyline);
-            drawInitial(svg)
+            //drawInitial(svg);
             svg.polyline(pt_path, {fill: 'none', stroke: 'blue', strokeWidth: 4});
 
         });
      });
+
+    $("#stop").click(function () {
+        var svg = $('#svg_path').svg('get');
+        svg.clear();
+    });
+
+    $("#zoomOut").click(function () {
+
+    });
 
     $(".btn11").click(function(){
         $.post("/name", {"userId": "1918E00103AA"}, function(data, status){
@@ -84,23 +93,16 @@ function imageDemo(svg, x, y) {
 }
 
 $(function() {
-	$('#svgbasics').svg({onLoad: drawInitial});
-	$('#rect,#line,#circle,#ellipse').click(drawShape);
-	$('#clear').click(function() {
-		$('#svgbasics').svg('get').clear();
-	});
-	$('#export').click(function() {
-		var xml = $('#svgbasics').svg('get').toSVG();
-		$('#svgexport').html(xml.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'));
-	});
+	$('#svg_map').svg({onLoad: drawInitial});
+    $('#svg_path').svg({onLoad: drawIniPath()});
 });
 
+function drawIniPath() {
+
+}
 
 function drawInitial(svg) {
-	//svg.circle(75, 75, 50, {fill: 'none', stroke: 'red', strokeWidth: 3});
-	//var g = svg.group({stroke: 'black', strokeWidth: 2});
-	//svg.line(g, 15, 75, 135, 75);
-	//svg.line(g, 75, 15, 75, 135);
+
     imageDemo(svg, x_people, y_people);
     svg.text(52, 76, '会议室');
 
@@ -111,24 +113,16 @@ function transformDemo(svg) {
     svg.describe('Example Skew - Show effects of skewX and skewY');
     var g1 = svg.group({transform: 'translate(70,120)'});
     var g2 = svg.group(g1, {transform: 'skewX(40)'});
-    //var g3 = svg.group(g2, {fill: 'none', stroke: 'red', strokeWidth: 3});
-    //svg.line(g3, 0, 0, 50, 0);
-    //svg.line(g3, 0, 0, 0, 50);
     svg.text(g2, 0, 0, '会议室',
         {fontSize: 20, fontFamily: 'Verdana', fill: 'blue'});
 
     g1 = svg.group({transform: 'translate(40,220)'});
     g2 = svg.group(g1, {transform: 'skewY(30)'});
-    //g3 = svg.group(g2, {fill: 'none', stroke: 'red', strokeWidth: 3});
-    //svg.line(g3, 0, 0, 50, 0);
-    //svg.line(g3, 0, 0, 0, 50);
     svg.text(g2, 0, 0, '副总办公室1',
         {fontSize: 20, fontFamily: 'Verdana', fill: 'blue'});
 
     g1 = svg.group({transform: 'translate(520,130)'});
     g2 = svg.group(g1, {fill: 'none', stroke: 'red', strokeWidth: 3});
-    //svg.line(g2, 0, 0, 50, 0);
-    //svg.line(g2, 0, 0, 0, 50);
     svg.text(g1, 0, 0, '仓  库',
         {fontSize: 16, fontFamily: 'Verdana'});
 
@@ -141,26 +135,6 @@ function transformDemo(svg) {
 
 var colours = ['purple', 'red', 'orange', 'yellow', 'lime', 'green', 'blue', 'navy', 'black'];
 
-function drawShape() {
-	var shape = this.id;
-	var svg = $('#svgbasics').svg('get');
-	if (shape == 'rect') {
-		svg.rect(random(300), random(200), random(100) + 100, random(100) + 100,
-			{fill: colours[random(9)], stroke: colours[random(9)], strokeWidth: random(5) + 1});
-	}
-	else if (shape == 'line') {
-		svg.line(random(400), random(300), random(400), random(300),
-			{stroke: colours[random(9)], strokeWidth: random(5) + 1});
-	}
-	else if (shape == 'circle') {
-		svg.circle(random(300) + 50, random(200) + 50, random(80) + 20,
-			{fill: colours[random(9)], stroke: colours[random(9)], strokeWidth: random(5) + 1});
-	}
-	else if (shape == 'ellipse') {
-		svg.ellipse(random(300) + 50, random(200) + 50, random(80) + 20, random(80) + 20,
-			{fill: colours[random(9)], stroke: colours[random(9)], strokeWidth: random(5) + 1});
-	}
-}
 
 function random(range) {
 	return Math.floor(Math.random() * range);
@@ -183,8 +157,6 @@ userId = {{ mac }}<br>
 x = {{ x }}<br>
 y= {{ y }}
 
-<div id="svgexport"></div>
-
 <button class="btn11" style="background-color:#666666;display:none">11. send name to flask</button><p id="coordinate">坐标</p><br>
 
 <p id="top_panel"><a href="http://www.hezhongsz.com/"><img src="static/img/hzlogo.png"></a>Floor3平面图
@@ -205,19 +177,18 @@ y= {{ y }}
         <option value="26">仓库</option>
     </select>
     <button class="navigation" id="go">开始导航</button>
+    <button id="stop">结束导航</button>
+    <button id="myPosition" style="visibility:hidden">占位</button>地图：
+    <button id="zoomOut">放大</button>
+    <button id="zoomIn">缩小</button>
 </div>
-</p>
-
-<p>
-    <button id="rect">Add rectangle</button> <button id="line">Add line</button>
-    <button id="circle">Add circle</button> <button id="ellipse">Add ellipse</button>
-    <button id="clear">Clear</button> <button id="export">Export</button>
 </p>
 
 <div id="myCanvas" width="1500" height="800" style="border:0px solid #d3d3d3;">
     <div id="floor3" width="1450" height="750" style="background:#98bf21;position:absolute">
         <img src="/static/img/floor3.svg" width="1043.1" height="530.7" style="position:absolute" id="map" >
-        <div id="svgbasics">
+        <div id="svg_map">
+            <div id="svg_path"></div>
             <img src="/static/img/people.jpg" style="position:absolute" id="people" title="1918E00103AA">
         </div>
     </div>
