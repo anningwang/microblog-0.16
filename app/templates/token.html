@@ -42,6 +42,7 @@ $(document).ready(function(){
             var svg = $('#svgbasics').svg('get');
             svg.clear();
             //svg.remove(polyline);
+            drawInitial(svg)
             svg.polyline(pt_path, {fill: 'none', stroke: 'blue', strokeWidth: 4});
 
         });
@@ -101,7 +102,41 @@ function drawInitial(svg) {
 	//svg.line(g, 15, 75, 135, 75);
 	//svg.line(g, 75, 15, 75, 135);
     imageDemo(svg, x_people, y_people);
-    svg.text(52, 76, 'SVG哈哈。你好');
+    svg.text(52, 76, '会议室');
+
+    transformDemo(svg);
+}
+
+function transformDemo(svg) {
+    svg.describe('Example Skew - Show effects of skewX and skewY');
+    var g1 = svg.group({transform: 'translate(70,120)'});
+    var g2 = svg.group(g1, {transform: 'skewX(40)'});
+    //var g3 = svg.group(g2, {fill: 'none', stroke: 'red', strokeWidth: 3});
+    //svg.line(g3, 0, 0, 50, 0);
+    //svg.line(g3, 0, 0, 0, 50);
+    svg.text(g2, 0, 0, '会议室',
+        {fontSize: 20, fontFamily: 'Verdana', fill: 'blue'});
+
+    g1 = svg.group({transform: 'translate(40,220)'});
+    g2 = svg.group(g1, {transform: 'skewY(30)'});
+    //g3 = svg.group(g2, {fill: 'none', stroke: 'red', strokeWidth: 3});
+    //svg.line(g3, 0, 0, 50, 0);
+    //svg.line(g3, 0, 0, 0, 50);
+    svg.text(g2, 0, 0, '副总办公室1',
+        {fontSize: 20, fontFamily: 'Verdana', fill: 'blue'});
+
+    g1 = svg.group({transform: 'translate(520,130)'});
+    g2 = svg.group(g1, {fill: 'none', stroke: 'red', strokeWidth: 3});
+    //svg.line(g2, 0, 0, 50, 0);
+    //svg.line(g2, 0, 0, 0, 50);
+    svg.text(g1, 0, 0, '仓  库',
+        {fontSize: 16, fontFamily: 'Verdana'});
+
+    g1 = svg.group({transform: 'translate(520,220)'});
+    g2 = svg.group(g1, {transform: 'rotate(-45)'});
+    svg.text(g2, 0, 0, '前  台',
+        {fontSize: 16, fontFamily: 'Verdana'});
+
 }
 
 var colours = ['purple', 'red', 'orange', 'yellow', 'lime', 'green', 'blue', 'navy', 'black'];
