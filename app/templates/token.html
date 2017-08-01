@@ -18,7 +18,6 @@
         height: 750px;
         position:absolute;
     }
-
 </style>
 <script src="/static/js/jquery.min.js"></script>
 <script src="/static/js/jquery.svg.package-1.5.0/jquery.svg.js"></script>
@@ -31,6 +30,7 @@ var map_h = 1769;
 var zoom = {{ zoom_rule }};
 var x = {{ x }};
 var y = {{ y }};
+var hz_is_navigating = false;
 
 var storage = window.localStorage;
 if(storage){
@@ -43,6 +43,9 @@ if(storage){
     }else {
         storage['hz_zoom'] = zoom;
     }
+
+    ///alert(storage['hz_is_navigating'] + "  " + Boolean(storage['hz_is_navigating']));
+    hz_is_navigating = Boolean(storage['hz_is_navigating']);
 }else{
     ///alert("浏览暂不支持localStorage");
 }
@@ -71,12 +74,15 @@ $(document).ready(function(){
             svg.clear();
             svg.polyline(pt_path, {fill: 'none', stroke: 'blue', strokeWidth: 4});
 
+            storage['hz_is_navigating'] = true;
+            hz_is_navigating = true;
         });
      });
 
     $("#stop").click(function () {
-        var svg = $('#svg_path').svg('get');
-        svg.clear();
+        hz_clear_path();
+        storage.removeItem('hz_is_navigating');
+        hz_is_navigating = false;
     });
 
     $("#zoomOut").click(function () {
@@ -85,7 +91,14 @@ $(document).ready(function(){
         hz_map_zoom(margin, margin, map_h * zoom, map_w * zoom);
         hz_people_goto(x * real_loc_to_pix * zoom - margin,
                 y * real_loc_to_pix * zoom, margin - margin);
-        //alert(zoom);
+        if (hz_is_navigating) {
+            hz_clear_path();
+            $("#go").click();
+        }
+
+        var svg = $('#svg_map').svg('get');
+        svg.clear();
+        drawInitial(svg);
     });
 
     $("#zoomIn").click(function () {
@@ -94,7 +107,14 @@ $(document).ready(function(){
         hz_map_zoom(margin, margin, map_h * zoom, map_w * zoom);
         hz_people_goto(x * real_loc_to_pix * zoom - margin,
                 y * real_loc_to_pix * zoom, margin - margin);
-        //alert(zoom);
+        if (hz_is_navigating) {
+            hz_clear_path();
+            $("#go").click();
+        }
+
+        var svg = $('#svg_map').svg('get');
+        svg.clear();
+        drawInitial(svg);
     });
 
     $(".btn11").click(function(){
@@ -135,6 +155,10 @@ function hz_people_goto(x, y) {
     });
 }
 
+function hz_clear_path() {
+    $('#svg_path').svg('get').clear();
+}
+
 function imageDemo(svg, x, y) {
     //var img = svg.image(x, y, 41, 51, '/static/img/people.jpg');
     //svg.title(img, '1918E00103AA');
@@ -151,28 +175,41 @@ function drawIniPath() {
 
 function drawInitial(svg) {
     imageDemo(svg, x_people, y_people);
-    svg.text(52, 76, '会议室');
+    var x_meeting_room = 1420;
+    var y_meeting_room = 3000;
+
+    svg.text(parseInt(x_meeting_room*real_loc_to_pix*zoom), parseInt(y_meeting_room*real_loc_to_pix*zoom), '会议室');
     transformDemo(svg);
 }
 
 function transformDemo(svg) {
+    var x_meeting_room = 1420;
+    var y_meeting_room = 4000;
+
     svg.describe('Example Skew - Show effects of skewX and skewY');
-    var g1 = svg.group({transform: 'translate(70,120)'});
+    var str3 = 'translate(' +  parseInt(x_meeting_room*real_loc_to_pix*zoom) + ',' + parseInt(y_meeting_room*real_loc_to_pix*zoom) + ')';
+    var g1 = svg.group({transform: str3});
     var g2 = svg.group(g1, {transform: 'skewX(40)'});
     svg.text(g2, 0, 0, '会议室',
         {fontSize: 20, fontFamily: 'Verdana', fill: 'blue'});
 
-    g1 = svg.group({transform: 'translate(40,220)'});
+    var y_manager1 = 8620;
+    var str4 = 'translate(' +  parseInt(x_meeting_room*real_loc_to_pix*zoom) + ',' + parseInt(y_manager1*real_loc_to_pix*zoom) + ')';
+    g1 = svg.group({transform: str4});
     g2 = svg.group(g1, {transform: 'skewY(30)'});
     svg.text(g2, 0, 0, '副总办公室1',
         {fontSize: 20, fontFamily: 'Verdana', fill: 'blue'});
 
-    g1 = svg.group({transform: 'translate(520,130)'});
+    var x_storage = 20000;
+    var y_storage = 5000;
+    var str1 = 'translate(' +  parseInt(x_storage*real_loc_to_pix*zoom) + ',' + parseInt(y_storage*real_loc_to_pix*zoom) + ')';
+    g1 = svg.group({transform: str1});
     g2 = svg.group(g1, {fill: 'none', stroke: 'red', strokeWidth: 3});
     svg.text(g1, 0, 0, '仓  库',
         {fontSize: 16, fontFamily: 'Verdana'});
 
-    g1 = svg.group({transform: 'translate(520,220)'});
+    var str2 = 'translate(' +  parseInt(x_storage*real_loc_to_pix*zoom) + ',' + parseInt((y_storage+3000)*real_loc_to_pix*zoom) + ')';
+    g1 = svg.group({transform: str2});
     g2 = svg.group(g1, {transform: 'rotate(-45)'});
     svg.text(g2, 0, 0, '前  台',
         {fontSize: 16, fontFamily: 'Verdana'});
@@ -189,7 +226,7 @@ function getPos()
     $(".btn11").click();
 }
 
-var t2 = window.setInterval("getPos()", 2000);
+var t2 = window.setInterval("getPos()", 1000);
 
 </script>
 
@@ -205,7 +242,7 @@ userId = {{ mac }}<br>
 x = {{ x }}<br>
 y= {{ y }}
 
-<button class="btn11" style="background-color:#666666;display:none">11. send name to flask</button><p id="coordinate">坐标</p><br>
+<button class="btn11" style="background-color:#666666;display:none">11. send userId to flask</button><p id="coordinate">坐标</p><br>
 
 <p id="top_panel"><a href="http://www.hezhongsz.com/"><img src="/static/img/hzlogo.png"></a>Floor3平面图
 
