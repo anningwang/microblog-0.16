@@ -92,8 +92,8 @@ def job_get_location():
         # 测试代码。向数据库随机插入坐标点
         if HZ_TEST_ADD_POS:
             test_loc = HzLocation(build_id='', floor_no='', user_id=TEST_UID,
-                                  x=random.randint(20, int(HZ_MAP_GEO_WIDTH)),
-                                  y=random.randint(20, int(HZ_MAP_GEO_HEIGHT)),
+                                  x=random.randint(20, int(HZ_MAP_GEO_WIDTH)-1000),
+                                  y=random.randint(20, int(HZ_MAP_GEO_HEIGHT)-1000),
                                   timestamp=datetime.today())
             db.session.add(test_loc)
             db.session.commit()

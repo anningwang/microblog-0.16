@@ -5,8 +5,20 @@
 <title>Lbs Demo</title>
 <link rel="stylesheet" href="/static/js/jquery.svg.package-1.5.0/jquery.svg.css">
 <style>
-#svg_map{ width: 1450px; height: 750px; border: 1px solid #484; position:absolute}
-#svg_path{ width: 1450px; height: 750px; position:absolute}
+    #myCanvas{ width: 1500px; height: 800px; }
+    #floor3 { width: 1450px; height: 750px; position: absolute; overflow: hidden; border: 2px solid #b94a48; }
+    #svg_map{
+        width: 1450px;
+        height: 750px;
+        position:absolute;
+        overflow:hidden;
+    }
+    #svg_path{
+        width: 1450px;
+        height: 750px;
+        position:absolute;
+    }
+
 </style>
 <script src="/static/js/jquery.min.js"></script>
 <script src="/static/js/jquery.svg.package-1.5.0/jquery.svg.js"></script>
@@ -14,35 +26,49 @@
 
 var margin = 0;
 var real_loc_to_pix = 0.0891;
-// 18, 44 是定位图标的 针尖 位置。显示图片时，是以图片左上角为参考坐标。故需要对坐标进行偏移。
-var x_people = real_loc_to_pix*{{x*zoom_rule }} + margin - 18;
-var y_people = real_loc_to_pix *{{ y*zoom_rule }} + margin - 44;
-var map_width_px = 3477 * {{ zoom_rule }};
-var map_height_px = 1769 * {{ zoom_rule }};
+var map_w = 3477;       /// px
+var map_h = 1769;
+var zoom = {{ zoom_rule }};
+var x = {{ x }};
+var y = {{ y }};
+
+var storage = window.localStorage;
+if(storage){
+    //storage.clear();
+    ///alert("浏览支持localStorage");
+    var hz_zoom = storage['hz_zoom'];
+    ///alert(hz_zoom);
+    if(typeof hz_zoom !== 'undefined') {    /// 存在值
+        zoom = hz_zoom;
+    }else {
+        storage['hz_zoom'] = zoom;
+    }
+}else{
+    ///alert("浏览暂不支持localStorage");
+}
+
+/// 18, 44 是定位图标的 针尖 位置。显示图片时，是以图片左上角为参考坐标。故需要对坐标进行偏移。
+var x_people = real_loc_to_pix * x *zoom + margin - 18;
+var y_people = real_loc_to_pix * y * zoom + margin - 44;
 
 $(document).ready(function(){
     $("#go").click(function(){
-        $("#people").animate({
-            left:x_people,
-            top:y_people
-        });
+        hz_people_goto(real_loc_to_pix * x *zoom + margin, real_loc_to_pix * y * zoom + margin);
 
         // 未做错误处理。后续需要改正
         var loc = $('#loc').val();
         $.post("/go", {"location": loc}, function(data, status){
             var pt_path = [];
             var i = 0;
-            pt_path[i] = [real_loc_to_pix * {{ x*zoom_rule }}, real_loc_to_pix * {{ y*zoom_rule }}];
+            pt_path[i] = [real_loc_to_pix * x * zoom, real_loc_to_pix * y * zoom];
             var json = eval(data); // 数组
             $.each(json, function (index, item) {
                 // 循环获取数据
                 i++;
-                pt_path[i] = [parseInt((json[index].x+44/2-2)*{{ zoom_rule }}), parseInt((json[index].y+44/2-2)*{{ zoom_rule }})];
-
+                pt_path[i] = [parseInt((json[index].x+44/2-2) * zoom), parseInt((json[index].y+44/2-2) * zoom)];
             });
             var svg = $('#svg_path').svg('get');
             svg.clear();
-            //drawInitial(svg);
             svg.polyline(pt_path, {fill: 'none', stroke: 'blue', strokeWidth: 4});
 
         });
@@ -54,28 +80,35 @@ $(document).ready(function(){
     });
 
     $("#zoomOut").click(function () {
+        zoom = parseFloat(zoom) + 0.05;
+        storage['hz_zoom'] = zoom;
+        hz_map_zoom(margin, margin, map_h * zoom, map_w * zoom);
+        hz_people_goto(x * real_loc_to_pix * zoom - margin,
+                y * real_loc_to_pix * zoom, margin - margin);
+        //alert(zoom);
+    });
 
+    $("#zoomIn").click(function () {
+        zoom = parseFloat(zoom) - 0.05;
+        storage['hz_zoom'] = zoom;
+        hz_map_zoom(margin, margin, map_h * zoom, map_w * zoom);
+        hz_people_goto(x * real_loc_to_pix * zoom - margin,
+                y * real_loc_to_pix * zoom, margin - margin);
+        //alert(zoom);
     });
 
     $(".btn11").click(function(){
         $.post("/name", {"userId": "1918E00103AA"}, function(data, status){
+            x = data.x;
+            y = data.y;
+            $("#coordinate").text("(x,y):(" + x + "," + x + ")" );
 
-            $("#coordinate").text("(x,y):(" + data.x + "," + data.y + ")" );
-
-            $("#map").animate({
-                left:margin,
-                top:margin,
-                height:map_height_px,
-                width:map_width_px
-            });
-
-            // 18, 44 是定位图标的 针尖 位置
-            $("#people").animate({
-                left: (real_loc_to_pix * data.x * {{ zoom_rule }} + margin - 18),
-                top: (real_loc_to_pix * data.y * {{ zoom_rule }} + margin - 44)
-            });
+            hz_people_goto(real_loc_to_pix * data.x * zoom + margin,real_loc_to_pix * data.y * zoom + margin);
         });
     });
+
+    /// 调整地图大小
+    hz_map_zoom(margin, margin, map_h * zoom, map_w * zoom);
 
     $("#people").hide();
     $("#people").animate({
@@ -85,11 +118,27 @@ $(document).ready(function(){
 
 });
 
+function hz_map_zoom(left, top, height, width) {
+    $("#map").animate({
+        left:left,
+        top:top,
+        height:height,
+        width:width
+    });
+}
+
+function hz_people_goto(x, y) {
+    /// 18, 44 是定位图标的 针尖 位置。显示图片时，是以图片左上角为参考坐标。故需要对坐标进行偏移。
+    $("#people").animate({
+        left: (x - 18),
+        top: (y - 44)
+    });
+}
+
 function imageDemo(svg, x, y) {
-    //svg.describe('This graphic links to an external image');
     //var img = svg.image(x, y, 41, 51, '/static/img/people.jpg');
     //svg.title(img, '1918E00103AA');
-    //var link = svg.link('http://www.w3.org/TR/SVG11/');
+    //var link = svg.link('http://www.qq.com');
 }
 
 $(function() {
@@ -98,14 +147,11 @@ $(function() {
 });
 
 function drawIniPath() {
-
 }
 
 function drawInitial(svg) {
-
     imageDemo(svg, x_people, y_people);
     svg.text(52, 76, '会议室');
-
     transformDemo(svg);
 }
 
@@ -130,11 +176,9 @@ function transformDemo(svg) {
     g2 = svg.group(g1, {transform: 'rotate(-45)'});
     svg.text(g2, 0, 0, '前  台',
         {fontSize: 16, fontFamily: 'Verdana'});
-
 }
 
 var colours = ['purple', 'red', 'orange', 'yellow', 'lime', 'green', 'blue', 'navy', 'black'];
-
 
 function random(range) {
 	return Math.floor(Math.random() * range);
@@ -149,8 +193,12 @@ var t2 = window.setInterval("getPos()", 2000);
 
 </script>
 
+    <link rel="shortcut icon" href="/static/img/favicon.ico" />
+    <link rel="bookmark" href="/static/img/favicon.ico" type="image/x-icon" />
+
 </head>
 <body>
+
 token = {{ token }}<br>
 refreshToken = {{ refreshToken }}<br>
 userId = {{ mac }}<br>
@@ -159,7 +207,7 @@ y= {{ y }}
 
 <button class="btn11" style="background-color:#666666;display:none">11. send name to flask</button><p id="coordinate">坐标</p><br>
 
-<p id="top_panel"><a href="http://www.hezhongsz.com/"><img src="static/img/hzlogo.png"></a>Floor3平面图
+<p id="top_panel"><a href="http://www.hezhongsz.com/"><img src="/static/img/hzlogo.png"></a>Floor3平面图
 
 <div id="txtHint">导航到
     <select id="loc" class="loc" name="locations"  style="font-family:Verdana, Arial, Helvetica, sans-serif;">
@@ -184,8 +232,8 @@ y= {{ y }}
 </div>
 </p>
 
-<div id="myCanvas" width="1500" height="800" style="border:0px solid #d3d3d3;">
-    <div id="floor3" width="1450" height="750" style="background:#98bf21;position:absolute">
+<div id="myCanvas">
+    <div id="floor3">
         <img src="/static/img/floor3.svg" width="1043.1" height="530.7" style="position:absolute" id="map" >
         <div id="svg_map">
             <div id="svg_path"></div>

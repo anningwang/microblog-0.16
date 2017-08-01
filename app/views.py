@@ -13,12 +13,7 @@ from translate import microsoft_translate
 from config import POSTS_PER_PAGE, MAX_SEARCH_RESULTS, LANGUAGES, DATABASE_QUERY_TIMEOUT
 import random
 from dijkstra import min_dist2, get_nearest_vertex, hz_vertex
-from lbs import TEST_UID
-
-# "geoScale":{"x":89.1,"y":89.1}}]
-geo_scale = 0.891
-map_width = 39.023569023569024 * 1000           # unit: mm, map_width(mm) * geo_scale = pix
-map_height = 19.85409652076319 * 1000           # unit: mm
+from lbs import TEST_UID, CUR_MAP_SCALE, HZ_MAP_GEO_WIDTH, HZ_MAP_GEO_HEIGHT
 
 
 @lm.user_loader
@@ -250,10 +245,10 @@ def translate():
 # JoySuch get Token
 @app.route('/token', methods=['POST', 'GET'])
 def gettoken():
-    zoom_rule = 0.3
+    zoom_rule = CUR_MAP_SCALE
     mac = TEST_UID
-    x = random.randint(30, 42350)
-    y = random.randint(30, 21620)
+    x = random.randint(30, int(HZ_MAP_GEO_WIDTH-1000))
+    y = random.randint(30, int(HZ_MAP_GEO_HEIGHT-1000))
     token = "aa"
     refresh_token = "bb"
 
@@ -287,7 +282,7 @@ def show_all_users():
 @app.route('/name', methods=['POST'])
 def get_pos():
     user_id = request.form['userId']
-    ret_loc = {'x': random.randint(30, int(map_width*geo_scale)), 'y': random.randint(30, int(map_height*geo_scale))}
+    ret_loc = {'x': random.randint(30, int(HZ_MAP_GEO_WIDTH-1000)), 'y': random.randint(30, int(HZ_MAP_GEO_HEIGHT-1000))}
     # print(ret_loc)
     hz_location = HzLocation.query.filter(HzLocation.user_id == user_id).order_by(HzLocation.timestamp.desc())
     for loc in hz_location:  # 如果存在，则获取最新的一个坐标
