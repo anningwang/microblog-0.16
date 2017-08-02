@@ -27,10 +27,13 @@ var margin = 0;
 var real_loc_to_pix = 0.0891;
 var map_w = 3477;       /// px
 var map_h = 1769;
-var zoom = {{ zoom_rule }};
+var zoom = {{ zoom_rule }};          /// 地图缩放级别
 var x = {{ x }};
 var y = {{ y }};
-var hz_is_navigating = false;
+var hz_is_navigating = false;      /// 是否曾经设置过导航，或正在导航中
+var HZ_DESTINATION_MEETING_ROOM = 27;
+var hz_destination = HZ_DESTINATION_MEETING_ROOM;            /// 导航的目的地，默认 第一个 目的地
+var hz_time_id = 0;
 
 var storage = window.localStorage;
 if(storage){
@@ -43,6 +46,8 @@ if(storage){
     }else {
         storage['hz_zoom'] = zoom;
     }
+    _dest = parseInt(storage['hz_destination']);
+    isNaN(_dest) ? hz_destination = HZ_DESTINATION_MEETING_ROOM : hz_destination = _dest;
 
     ///alert(storage['hz_is_navigating'] + "  " + Boolean(storage['hz_is_navigating']));
     hz_is_navigating = Boolean(storage['hz_is_navigating']);
@@ -56,15 +61,24 @@ var y_people = real_loc_to_pix * y * zoom + margin - 44;
 
 $(document).ready(function(){
     $("#go").click(function(){
-        hz_people_goto(real_loc_to_pix * x *zoom + margin, real_loc_to_pix * y * zoom + margin);
+        //hz_people_goto(real_loc_to_pix * x *zoom + margin, real_loc_to_pix * y * zoom + margin);
 
+        $("#go").attr("disabled", true);
+        $("#loc").attr("disabled", true);
         // 未做错误处理。后续需要改正
-        var loc = $('#loc').val();
-        $.post("/go", {"location": loc}, function(data, status){
+        //var location = $('#loc').val();
+        //hz_destination = location;
+        //storage['hz_destination'] = location;
+        $.post("/go", {"location": hz_destination}, function(data, status){
             var pt_path = [];
             var i = 0;
+            x = data.x;
+            y = data.y;
+
+            hz_people_goto(real_loc_to_pix * x *zoom + margin, real_loc_to_pix * y * zoom + margin);
+
             pt_path[i] = [real_loc_to_pix * x * zoom, real_loc_to_pix * y * zoom];
-            var json = eval(data); // 数组
+            var json = eval(data.path); // 数组
             $.each(json, function (index, item) {
                 // 循环获取数据
                 i++;
@@ -83,6 +97,8 @@ $(document).ready(function(){
         hz_clear_path();
         storage.removeItem('hz_is_navigating');
         hz_is_navigating = false;
+        $("#go").attr("disabled", false);
+        $("#loc").attr("disabled", false);
     });
 
     $("#zoomOut").click(function () {
@@ -117,11 +133,11 @@ $(document).ready(function(){
         drawInitial(svg);
     });
 
-    $(".btn11").click(function(){
-        $.post("/name", {"userId": "1918E00103AA"}, function(data, status){
+    $(".btnGetLocation").click(function(){
+        $.post("/get_location", {"userId": "1918E00103AA"}, function(data, status){
             x = data.x;
             y = data.y;
-            $("#coordinate").text("(x,y):(" + x + "," + x + ")" );
+            $("#coordinate").text("(x,y):(" + x + "," + y + ")" );
 
             hz_people_goto(real_loc_to_pix * data.x * zoom + margin,real_loc_to_pix * data.y * zoom + margin);
         });
@@ -135,6 +151,8 @@ $(document).ready(function(){
         left:x_people,
         top:y_people
     }, 10, function() { $("#people").show(); });
+
+    $("#loc").val(parseInt(hz_destination));
 
 });
 
@@ -223,10 +241,19 @@ function random(range) {
 
 function getPos()
 {
-    $(".btn11").click();
+    if (hz_is_navigating) {
+        $("#go").click();
+    } else {
+        $(".btnGetLocation").click();
+    }
 }
 
-var t2 = window.setInterval("getPos()", 1000);
+hz_time_id = window.setInterval("getPos()", 1000);
+
+function selectLocation(str){
+    hz_destination = parseInt(str);
+    storage['hz_destination'] = hz_destination;
+}
 
 </script>
 
@@ -242,12 +269,12 @@ userId = {{ mac }}<br>
 x = {{ x }}<br>
 y= {{ y }}
 
-<button class="btn11" style="background-color:#666666;display:none">11. send userId to flask</button><p id="coordinate">坐标</p><br>
+<button class="btnGetLocation" style="background-color:#666666;display:none">11. send userId to flask</button><p id="coordinate">坐标</p><br>
 
 <p id="top_panel"><a href="http://www.hezhongsz.com/"><img src="/static/img/hzlogo.png"></a>Floor3平面图
 
 <div id="txtHint">导航到
-    <select id="loc" class="loc" name="locations"  style="font-family:Verdana, Arial, Helvetica, sans-serif;">
+    <select id="loc" class="loc" name="locations" onchange="selectLocation(this.value)" style="font-family:Verdana, Arial, Helvetica, sans-serif;">
         <option value="27">Room 1 测试区</option>
         <option value="29">Room 2</option>
         <option value="30">Room 3</option>

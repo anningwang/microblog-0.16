@@ -279,7 +279,7 @@ def show_all_users():
     return render_template('show_all_users.html', users=users)
 
 
-@app.route('/name', methods=['POST'])
+@app.route('/get_location', methods=['POST'])
 def get_pos():
     user_id = request.form['userId']
     ret_loc = {'x': random.randint(30, int(HZ_MAP_GEO_WIDTH-1000)), 'y': random.randint(30, int(HZ_MAP_GEO_HEIGHT-1000))}
@@ -312,4 +312,6 @@ def get_path():
     for p in path:
         ret.append(hz_vertex[p])
 
-    return jsonify(ret)
+    ret_loc_with_path = {'x': px, 'y': py, 'path': ret}
+
+    return jsonify(ret_loc_with_path)
