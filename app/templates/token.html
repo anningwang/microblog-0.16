@@ -34,11 +34,16 @@ var hz_is_navigating = false;      /// 是否曾经设置过导航，或正在�
 var HZ_DESTINATION_MEETING_ROOM = 27;
 var hz_destination = HZ_DESTINATION_MEETING_ROOM;            /// 导航的目的地，默认 第一个 目的地
 var hz_time_id = 0;
+var hz_user_id = 0;
 
 var storage = window.localStorage;
 if(storage){
     //storage.clear();
     ///alert("浏览支持localStorage");
+    var _userId = storage['hz_user_id'];
+    if(typeof _userId !== 'undefined') {
+        hz_user_id = _userId;
+    }
     var hz_zoom = storage['hz_zoom'];
     ///alert(hz_zoom);
     if(typeof hz_zoom !== 'undefined') {    /// 存在值
@@ -65,6 +70,7 @@ $(document).ready(function(){
 
         $("#go").attr("disabled", true);
         $("#loc").attr("disabled", true);
+        $("#userId").attr("disabled", true);
         // 未做错误处理。后续需要改正
         //var location = $('#loc').val();
         //hz_destination = location;
@@ -99,6 +105,7 @@ $(document).ready(function(){
         hz_is_navigating = false;
         $("#go").attr("disabled", false);
         $("#loc").attr("disabled", false);
+        $("#userId").attr("disabled", false);
     });
 
     $("#zoomOut").click(function () {
@@ -134,40 +141,54 @@ $(document).ready(function(){
     });
 
     $(".btnGetLocation").click(function(){
+        //$.post("/get_location", {"userId": ["1918E00103AA", "1918E00103A9"]}, function(data, status){
         $.post("/get_location", {"userId": "1918E00103AA"}, function(data, status){
-            x = data.x;
-            y = data.y;
-            $("#coordinate").text("(x,y):(" + x + "," + y + ")" );
+            var json = eval(data); // 数组
+            $.each(json, function (index, item) {
+                if (json[index]['userId'] == hz_user_id) {
+                    x = json[index]['x'];
+                    y = json[index]['y'];
+                }
 
-            hz_people_goto(real_loc_to_pix * data.x * zoom + margin,real_loc_to_pix * data.y * zoom + margin);
+                hz_people_goto(real_loc_to_pix * json[index]['x'] * zoom + margin,
+                        real_loc_to_pix * json[index]['y'] * zoom + margin,
+                        json[index]['userId']);
+            });
         });
     });
 
     /// 调整地图大小
     hz_map_zoom(margin, margin, map_h * zoom, map_w * zoom);
 
-    $("#people").hide();
-    $("#people").animate({
+    $("#1918E00103AA").animate({
         left:x_people,
         top:y_people
-    }, 10, function() { $("#people").show(); });
+    }).stop(true, true);
+
 
     $("#loc").val(parseInt(hz_destination));
+    $("#go").attr("disabled", hz_user_id == '0');
+    $("#loc").attr("disabled", hz_user_id == '0');
 
 });
 
-function hz_map_zoom(left, top, height, width) {
-    $("#map").animate({
+function hz_map_zoom(left, top, height, width, isAnimate) {
+    isAnimate = isAnimate || true;     // 默认参数为true，执行动画
+    $("#map").stop(true, true).animate({
         left:left,
         top:top,
         height:height,
         width:width
     });
+    if (!isAnimate) {
+        $('#map').stop(true, true);
+   }
 }
 
-function hz_people_goto(x, y) {
+function hz_people_goto(x, y, people) {
     /// 18, 44 是定位图标的 针尖 位置。显示图片时，是以图片左上角为参考坐标。故需要对坐标进行偏移。
-    $("#people").animate({
+    people = people || '1918E00103AA';      // 设置默认参数
+    $("#"+people).animate({
         left: (x - 18),
         top: (y - 44)
     });
@@ -222,7 +243,6 @@ function transformDemo(svg) {
     var y_storage = 5000;
     var str1 = 'translate(' +  parseInt(x_storage*real_loc_to_pix*zoom) + ',' + parseInt(y_storage*real_loc_to_pix*zoom) + ')';
     g1 = svg.group({transform: str1});
-    g2 = svg.group(g1, {fill: 'none', stroke: 'red', strokeWidth: 3});
     svg.text(g1, 0, 0, '仓  库',
         {fontSize: 16, fontFamily: 'Verdana'});
 
@@ -255,6 +275,14 @@ function selectLocation(str){
     storage['hz_destination'] = hz_destination;
 }
 
+function selectUser(str){
+    hz_user_id = str;
+    storage['hz_user_id'] = hz_user_id;
+
+    $("#go").attr("disabled", hz_user_id == '0');
+    $("#loc").attr("disabled", hz_user_id == '0');
+}
+
 </script>
 
     <link rel="shortcut icon" href="/static/img/favicon.ico" />
@@ -269,11 +297,17 @@ userId = {{ mac }}<br>
 x = {{ x }}<br>
 y= {{ y }}
 
-<button class="btnGetLocation" style="background-color:#666666;display:none">11. send userId to flask</button><p id="coordinate">坐标</p><br>
+<button class="btnGetLocation" style="background-color:#666666;display:none">11. send userId to flask</button><br>
 
 <p id="top_panel"><a href="http://www.hezhongsz.com/"><img src="/static/img/hzlogo.png"></a>Floor3平面图
 
-<div id="txtHint">导航到
+<div id="txtHint">
+    <select id="userId" onchange="selectUser(this.value)" style="font-family:Verdana, Arial, Helvetica, sans-serif;">
+        <option value="0">请选择用户开启导航</option>
+        <option value="1">1918E00103AA</option>
+        <option value="1">1918E00103A9</option>
+    </select>
+    导航到
     <select id="loc" class="loc" name="locations" onchange="selectLocation(this.value)" style="font-family:Verdana, Arial, Helvetica, sans-serif;">
         <option value="27">Room 1 测试区</option>
         <option value="29">Room 2</option>
@@ -301,7 +335,8 @@ y= {{ y }}
         <img src="/static/img/floor3.svg" width="1043.1" height="530.7" style="position:absolute" id="map" >
         <div id="svg_map">
             <div id="svg_path"></div>
-            <img src="/static/img/people.jpg" style="position:absolute" id="people" title="1918E00103AA">
+            <img src="/static/img/people.jpg" style="position:absolute" id="1918E00103AA" title="1918E00103AA">
+            <img src="/static/img/people.jpg" style="position:absolute" id="1918E00103A9" title="1918E00103A9">
         </div>
     </div>
 </div>

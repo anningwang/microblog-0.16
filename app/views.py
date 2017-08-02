@@ -282,13 +282,10 @@ def show_all_users():
 @app.route('/get_location', methods=['POST'])
 def get_pos():
     user_id = request.form['userId']
-    ret_loc = {'x': random.randint(30, int(HZ_MAP_GEO_WIDTH-1000)), 'y': random.randint(30, int(HZ_MAP_GEO_HEIGHT-1000))}
-    # print(ret_loc)
-    hz_location = HzLocation.query.filter(HzLocation.user_id == user_id).order_by(HzLocation.timestamp.desc())
+    ret_loc = []
+    hz_location = HzLocation.query.group_by(HzLocation.user_id)
     for loc in hz_location:  # 如果存在，则获取最新的一个坐标
-        ret_loc['x'] = loc.x
-        ret_loc['y'] = loc.y
-        break
+        ret_loc.append({'userId': loc.user_id, 'x': loc.x, 'y': loc.y})
 
     return jsonify(ret_loc)
 
