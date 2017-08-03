@@ -28,8 +28,6 @@ var real_loc_to_pix = 0.0891;
 var map_w = 3477;       /// px
 var map_h = 1769;
 var zoom = {{ zoom_rule }};          /// 地图缩放级别
-var x = {{ x }};
-var y = {{ y }};
 var hz_is_navigating = false;      /// 是否曾经设置过导航，或正在导航中
 var HZ_DESTINATION_MEETING_ROOM = 27;
 var hz_destination = HZ_DESTINATION_MEETING_ROOM;            /// 导航的目的地，默认 第一个 目的地
@@ -62,10 +60,6 @@ if(storage){
     ///alert("浏览暂不支持localStorage");
 }
 
-/// 18, 44 是定位图标的 针尖 位置。显示图片时，是以图片左上角为参考坐标。故需要对坐标进行偏移。
-var x_people = real_loc_to_pix * x *zoom + margin - 18;
-var y_people = real_loc_to_pix * y * zoom + margin - 44;
-
 $(document).ready(function(){
     $("#go").click(function(){
         $("#go").attr("disabled", true);
@@ -74,21 +68,23 @@ $(document).ready(function(){
         // 未做错误处理。后续需要改正
         $.post("/go", {"location": hz_destination, "userId": HZ_USER_IDS[hz_user_id-1]}, function(data, status){
             var pt_path = [];
-            var i = 0;
-            x = data.x;
-            y = data.y;
+            var pt = eval(data.points); // 数组
+            $.each(pt, function (index, item) {
+                hz_people_goto(item['x'] * real_loc_to_pix * zoom + margin, item['y'] * real_loc_to_pix * zoom + margin, item['userId']);
+                if (item['userId'] == HZ_USER_IDS[hz_user_id-1]) {
+                    pt_path[0] = [item['x'] * real_loc_to_pix * zoom, item['y'] * real_loc_to_pix * zoom];
+                }
+            });
 
-            hz_people_goto(real_loc_to_pix * x *zoom + margin,
-                    real_loc_to_pix * y * zoom + margin,
-                    HZ_USER_IDS[hz_user_id-1]);
-
-            pt_path[i] = [real_loc_to_pix * x * zoom, real_loc_to_pix * y * zoom];
             var json = eval(data.path); // 数组
             $.each(json, function (index, item) {
                 // 循环获取数据
-                i++;
-                pt_path[i] = [parseInt((json[index].x+44/2-2) * zoom), parseInt((json[index].y+44/2-2) * zoom)];
+                pt_path[index+1] = [parseInt((json[index].x+44/2-2) * zoom), parseInt((json[index].y+44/2-2) * zoom)];
             });
+
+            hz_people_go_no_animate(pt_path[pt_path.length-1][0], pt_path[pt_path.length-1][1], 'destination');
+            $('#destination').show();
+
             var svg = $('#svg_path').svg('get');
             svg.clear();
             svg.polyline(pt_path, {fill: 'none', stroke: 'blue', strokeWidth: 4});
@@ -98,13 +94,17 @@ $(document).ready(function(){
         });
      });
 
+    /// 停止导航
     $("#stop").click(function () {
-        hz_clear_path();
-        storage.removeItem('hz_is_navigating');
-        hz_is_navigating = false;
-        $("#go").attr("disabled", false);
-        $("#loc").attr("disabled", false);
-        $("#userId").attr("disabled", false);
+        if(hz_is_navigating){
+            hz_clear_path();
+            storage.removeItem('hz_is_navigating');
+            hz_is_navigating = false;
+            $("#go").attr("disabled", false);
+            $("#loc").attr("disabled", false);
+            $("#userId").attr("disabled", false);
+            $("#destination").hide();
+        }
     });
 
     $("#zoomOut").click(function () {
@@ -148,7 +148,6 @@ $(document).ready(function(){
     });
 
     $(".btnGetLocation").click(function(){
-        //$.post("/get_location", {"userId": ["1918E00103AA", "1918E00103A9"]}, function(data, status){
         $.post("/get_location", {"userId": "1918E00103AA"}, function(data, status){
             var json = eval(data); // 数组
             $.each(json, function (index, item) {
@@ -175,6 +174,7 @@ $(document).ready(function(){
     $("#userId").val(parseInt(hz_user_id));
     $("#go").attr("disabled", hz_user_id == '0');
     $("#loc").attr("disabled", hz_user_id == '0');
+    $('#destination').hide();
 
 });
 
@@ -192,8 +192,8 @@ function hz_map_zoom(left, top, height, width, isAnimate) {
 }
 
 function hz_people_goto(x, y, people) {
-    /// 24, 445是定位图标的 针尖 位置。显示图片时，是以图片左上角为参考坐标。故需要对坐标进行偏移。
     people = people || '1918E00103AA';      // 设置默认参数
+    /// 24, 45是定位图标的 针尖 位置。显示图片时，是以图片左上角为参考坐标。故需要对坐标进行偏移。
     $("#"+people).stop(true, true).animate({
         left: (x - 24),
         top: (y - 45)
@@ -201,24 +201,16 @@ function hz_people_goto(x, y, people) {
 }
 
 function hz_people_go_no_animate(x, y, people) {
-    /// 24, 45 是定位图标的 针尖 位置。显示图片时，是以图片左上角为参考坐标。故需要对坐标进行偏移。
-    //alert(people);
     people = people || '1918E00103AA';      // 设置默认参数
-    //alert(people);
+    /// 24, 45 是定位图标的 针尖 位置。显示图片时，是以图片左上角为参考坐标。故需要对坐标进行偏移。
     $("#"+people).animate({
-        left: (x - 24),
-        top: (y - 45)
+        left: x - 24,
+        top: y - 45
     }).stop(true, true);
 }
 
 function hz_clear_path() {
     $('#svg_path').svg('get').clear();
-}
-
-function imageDemo(svg, x, y) {
-    //var img = svg.image(x, y, 41, 51, '/static/img/people.jpg');
-    //svg.title(img, '1918E00103AA');
-    //var link = svg.link('http://www.qq.com');
 }
 
 $(function() {
@@ -230,10 +222,8 @@ function drawIniPath() {
 }
 
 function drawInitial(svg) {
-    imageDemo(svg, x_people, y_people);
     var x_meeting_room = 1420;
     var y_meeting_room = 3000;
-
     svg.text(parseInt(x_meeting_room*real_loc_to_pix*zoom), parseInt(y_meeting_room*real_loc_to_pix*zoom), '会议室');
     transformDemo(svg);
 }
@@ -292,7 +282,7 @@ function getPos()
     }
 }
 
-///hz_time_id = window.setInterval("getPos()", 1000);
+hz_time_id = window.setInterval("getPos()", 1000);
 
 function selectLocation(str){
     hz_destination = parseInt(str);
@@ -320,12 +310,6 @@ function selectUser(str){
 
 </head>
 <body>
-
-token = {{ token }}<br>
-refreshToken = {{ refreshToken }}<br>
-userId = {{ mac }}<br>
-x = {{ x }}<br>
-y= {{ y }}
 
 <button class="btnGetLocation" style="background-color:#666666;display:none">11. send userId to flask</button><br>
 
@@ -367,6 +351,7 @@ y= {{ y }}
             <div id="svg_path"></div>
             <img src="/static/img/people.png" style="position:absolute" id="1918E00103AA" title="1918E00103AA">
             <img src="/static/img/people.png" style="position:absolute" id="1918E00103A9" title="1918E00103A9">
+            <img src="/static/img/dest.png" style="position:absolute" id="destination" title="终点">
         </div>
     </div>
 </div>

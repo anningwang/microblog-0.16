@@ -17,7 +17,7 @@ h.setFormatter(fmt)
 log.addHandler(h)
 
 HZ_LICENSE = "cb5537fd8e684827b7e4f83b742c8f2c"
-JOB_INTERVAL = 2                      # seconds
+JOB_INTERVAL = 60 * 10                # seconds
 TEST_UID = "1918E00103AA"           # 测试用标签UID
 TEST_UID_2 = "1918E00103A9"         # 测试用标签UID
 GEO_SCALE = 0.0891                    # 像素坐标(px) * 10 / 物理坐标(mm) = 89.1%
@@ -34,7 +34,6 @@ def job_get_token():
     hz_token = HzToken.query.all()
     dt_time = (time_now - hz_token[0].timestamp).total_seconds()
     if len(hz_token) > 0 and dt_time < hz_token[0].expires_in - JOB_INTERVAL - 60 * 10:
-        get_location(hz_token[0].token)
         return
 
     test_data = {"licence": HZ_LICENSE}
@@ -68,7 +67,6 @@ def job_get_token():
             print "Update token:", hz_token[0], "at", time_now, "[END]"
             db.session.add(hz_token[0])
             db.session.commit()
-        # get_location(obj['data']['token'])
     else:
         print "error in function job_get_token(): ", res
         print "url= ", url
@@ -76,9 +74,16 @@ def job_get_token():
         return
 
 
-def get_location(token):
+def job_get_location():
+    time_now = datetime.utcnow()
+    hz_token = HzToken.query.all()
+    # 还没有获取过token，或者token过期
+    dt_time = (time_now - hz_token[0].timestamp).total_seconds()
+    if len(hz_token) == 0 and dt_time > hz_token[0].expires_in:
+        return
+
     url = "https://api.joysuch.com:46000/WebLocate/locateResults"
-    data = {'accessToken': token,
+    data = {'accessToken': hz_token[0].token,
             'userIds': HZ_UID,
             'timePeriod': 3000}
     headers = {'Content-Type': 'application/json;charset=UTF-8'}
@@ -105,7 +110,7 @@ def get_location(token):
             db.session.add(hz_location)
             db.session.commit()
     else:
-        print "error in function get_location(): ", res
+        print "error in function job_get_location(): ", res
         print "url= ", url
         print "req data= ", data
 
@@ -115,5 +120,6 @@ def get_location(token):
 scheduler = BackgroundScheduler()
 scheduler.add_job(job_get_token, 'interval', seconds=JOB_INTERVAL, id='my_job_get_token',
                   next_run_time=datetime.now())
-
+scheduler.add_job(job_get_location, 'interval', seconds=2, id='my_job_get_location',
+                  next_run_time=datetime.now())
 scheduler.start()

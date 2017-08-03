@@ -297,19 +297,21 @@ def get_path():
     user_id = request.form['userId']
     px = py = 0
 
-    hz_location = HzLocation.query.filter(HzLocation.user_id == user_id).order_by(HzLocation.timestamp.desc())
+    points = []
+    hz_location = HzLocation.query.group_by(HzLocation.user_id)
     for loc in hz_location:  # 如果存在，则获取最新的一个坐标
-        px = loc.x
-        py = loc.y
-        break
+        if user_id == loc.user_id:
+            px = loc.x
+            py = loc.y
+        points.append({'userId': loc.user_id, 'x': loc.x, 'y': loc.y})
 
     pt_from = get_nearest_vertex(px, py)
     path = min_dist2(pt_from, location)
-    # print path
+    print path
 
     ret = []
     for p in path:
         ret.append(hz_vertex[p])
 
-    ret_loc_with_path = {'x': px, 'y': py, 'path': ret}
+    ret_loc_with_path = {'x': px, 'y': py, 'path': ret, 'points': points}
     return jsonify(ret_loc_with_path)
