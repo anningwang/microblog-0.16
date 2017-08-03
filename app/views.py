@@ -287,15 +287,17 @@ def get_pos():
     for loc in hz_location:  # 如果存在，则获取最新的一个坐标
         ret_loc.append({'userId': loc.user_id, 'x': loc.x, 'y': loc.y})
 
+    # print ret_loc
     return jsonify(ret_loc)
 
 
 @app.route('/go', methods=['POST'])
 def get_path():
     location = int(request.form['location'])
+    user_id = request.form['userId']
     px = py = 0
 
-    hz_location = HzLocation.query.filter(HzLocation.user_id == TEST_UID).order_by(HzLocation.timestamp.desc())
+    hz_location = HzLocation.query.filter(HzLocation.user_id == user_id).order_by(HzLocation.timestamp.desc())
     for loc in hz_location:  # 如果存在，则获取最新的一个坐标
         px = loc.x
         py = loc.y
@@ -303,12 +305,11 @@ def get_path():
 
     pt_from = get_nearest_vertex(px, py)
     path = min_dist2(pt_from, location)
-    print path
+    # print path
 
     ret = []
     for p in path:
         ret.append(hz_vertex[p])
 
     ret_loc_with_path = {'x': px, 'y': py, 'path': ret}
-
     return jsonify(ret_loc_with_path)

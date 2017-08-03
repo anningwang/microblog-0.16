@@ -35,6 +35,8 @@ var HZ_DESTINATION_MEETING_ROOM = 27;
 var hz_destination = HZ_DESTINATION_MEETING_ROOM;            /// 导航的目的地，默认 第一个 目的地
 var hz_time_id = 0;
 var hz_user_id = 0;
+var HZ_USER_IDS = ['1918E00103AA', '1918E00103A9'];
+var hz_user_xy = [];
 
 var storage = window.localStorage;
 if(storage){
@@ -66,22 +68,19 @@ var y_people = real_loc_to_pix * y * zoom + margin - 44;
 
 $(document).ready(function(){
     $("#go").click(function(){
-        //hz_people_goto(real_loc_to_pix * x *zoom + margin, real_loc_to_pix * y * zoom + margin);
-
         $("#go").attr("disabled", true);
         $("#loc").attr("disabled", true);
         $("#userId").attr("disabled", true);
         // 未做错误处理。后续需要改正
-        //var location = $('#loc').val();
-        //hz_destination = location;
-        //storage['hz_destination'] = location;
-        $.post("/go", {"location": hz_destination}, function(data, status){
+        $.post("/go", {"location": hz_destination, "userId": HZ_USER_IDS[hz_user_id-1]}, function(data, status){
             var pt_path = [];
             var i = 0;
             x = data.x;
             y = data.y;
 
-            hz_people_goto(real_loc_to_pix * x *zoom + margin, real_loc_to_pix * y * zoom + margin);
+            hz_people_goto(real_loc_to_pix * x *zoom + margin,
+                    real_loc_to_pix * y * zoom + margin,
+                    HZ_USER_IDS[hz_user_id-1]);
 
             pt_path[i] = [real_loc_to_pix * x * zoom, real_loc_to_pix * y * zoom];
             var json = eval(data.path); // 数组
@@ -112,8 +111,12 @@ $(document).ready(function(){
         zoom = parseFloat(zoom) + 0.05;
         storage['hz_zoom'] = zoom;
         hz_map_zoom(margin, margin, map_h * zoom, map_w * zoom);
-        hz_people_goto(x * real_loc_to_pix * zoom - margin,
-                y * real_loc_to_pix * zoom, margin - margin);
+
+        for (var i = 0; i< hz_user_xy.length; i++) {
+            hz_people_go_no_animate(hz_user_xy[i][1] * real_loc_to_pix * zoom - margin,
+                    hz_user_xy[i][2] * real_loc_to_pix * zoom - margin, hz_user_xy[i][0]);
+        }
+
         if (hz_is_navigating) {
             hz_clear_path();
             $("#go").click();
@@ -128,8 +131,12 @@ $(document).ready(function(){
         zoom = parseFloat(zoom) - 0.05;
         storage['hz_zoom'] = zoom;
         hz_map_zoom(margin, margin, map_h * zoom, map_w * zoom);
-        hz_people_goto(x * real_loc_to_pix * zoom - margin,
-                y * real_loc_to_pix * zoom, margin - margin);
+
+        for (var i = 0; i< hz_user_xy.length; i++) {
+            hz_people_go_no_animate(hz_user_xy[i][1] * real_loc_to_pix * zoom - margin,
+                    hz_user_xy[i][2] * real_loc_to_pix * zoom - margin, hz_user_xy[i][0]);
+        }
+
         if (hz_is_navigating) {
             hz_clear_path();
             $("#go").click();
@@ -145,28 +152,27 @@ $(document).ready(function(){
         $.post("/get_location", {"userId": "1918E00103AA"}, function(data, status){
             var json = eval(data); // 数组
             $.each(json, function (index, item) {
-                if (json[index]['userId'] == hz_user_id) {
-                    x = json[index]['x'];
-                    y = json[index]['y'];
-                }
-
-                hz_people_goto(real_loc_to_pix * json[index]['x'] * zoom + margin,
-                        real_loc_to_pix * json[index]['y'] * zoom + margin,
-                        json[index]['userId']);
+                hz_user_xy[index] = [item['userId'], json[index]['x'], json[index]['y']];
             });
+
+            for (var i = 0; i< hz_user_xy.length; i++) {
+                hz_people_go_no_animate(hz_user_xy[i][1] * real_loc_to_pix * zoom - margin,
+                        hz_user_xy[i][2] * real_loc_to_pix * zoom - margin, hz_user_xy[i][0]);
+            }
         });
     });
 
     /// 调整地图大小
     hz_map_zoom(margin, margin, map_h * zoom, map_w * zoom);
 
-    $("#1918E00103AA").animate({
-        left:x_people,
-        top:y_people
-    }).stop(true, true);
-
+    if(hz_user_id != 0) {       /// 设置选择用户（标签）图片
+        $('#'+ HZ_USER_IDS[hz_user_id-1]).attr('src', '/static/img/peoplesel.png');
+    }
+    /// 调整用户、标签位置
+    $('.btnGetLocation').click();
 
     $("#loc").val(parseInt(hz_destination));
+    $("#userId").val(parseInt(hz_user_id));
     $("#go").attr("disabled", hz_user_id == '0');
     $("#loc").attr("disabled", hz_user_id == '0');
 
@@ -186,12 +192,23 @@ function hz_map_zoom(left, top, height, width, isAnimate) {
 }
 
 function hz_people_goto(x, y, people) {
-    /// 18, 44 是定位图标的 针尖 位置。显示图片时，是以图片左上角为参考坐标。故需要对坐标进行偏移。
+    /// 24, 445是定位图标的 针尖 位置。显示图片时，是以图片左上角为参考坐标。故需要对坐标进行偏移。
     people = people || '1918E00103AA';      // 设置默认参数
-    $("#"+people).animate({
-        left: (x - 18),
-        top: (y - 44)
+    $("#"+people).stop(true, true).animate({
+        left: (x - 24),
+        top: (y - 45)
     });
+}
+
+function hz_people_go_no_animate(x, y, people) {
+    /// 24, 45 是定位图标的 针尖 位置。显示图片时，是以图片左上角为参考坐标。故需要对坐标进行偏移。
+    //alert(people);
+    people = people || '1918E00103AA';      // 设置默认参数
+    //alert(people);
+    $("#"+people).animate({
+        left: (x - 24),
+        top: (y - 45)
+    }).stop(true, true);
 }
 
 function hz_clear_path() {
@@ -266,9 +283,16 @@ function getPos()
     } else {
         $(".btnGetLocation").click();
     }
+
+    for (var p in hz_user_xy) {
+        if(hz_user_xy.hasOwnProperty(p)) {
+            hz_people_goto(hz_user_xy[p][0] * real_loc_to_pix * zoom - margin,
+                    hz_user_xy[p][1] * real_loc_to_pix * zoom - margin, p );
+        }
+    }
 }
 
-hz_time_id = window.setInterval("getPos()", 1000);
+///hz_time_id = window.setInterval("getPos()", 1000);
 
 function selectLocation(str){
     hz_destination = parseInt(str);
@@ -276,8 +300,14 @@ function selectLocation(str){
 }
 
 function selectUser(str){
+    if(hz_user_id != 0) {       /// 还原用户（标签）图片为“未选中”状态
+        $('#'+ HZ_USER_IDS[hz_user_id-1]).attr('src', '/static/img/people.png');
+    }
     hz_user_id = str;
     storage['hz_user_id'] = hz_user_id;
+    if(hz_user_id != 0) {       /// 设置选择用户（标签）图片
+        $('#'+ HZ_USER_IDS[hz_user_id-1]).attr('src', '/static/img/peoplesel.png');
+    }
 
     $("#go").attr("disabled", hz_user_id == '0');
     $("#loc").attr("disabled", hz_user_id == '0');
@@ -305,7 +335,7 @@ y= {{ y }}
     <select id="userId" onchange="selectUser(this.value)" style="font-family:Verdana, Arial, Helvetica, sans-serif;">
         <option value="0">请选择用户开启导航</option>
         <option value="1">1918E00103AA</option>
-        <option value="1">1918E00103A9</option>
+        <option value="2">1918E00103A9</option>
     </select>
     导航到
     <select id="loc" class="loc" name="locations" onchange="selectLocation(this.value)" style="font-family:Verdana, Arial, Helvetica, sans-serif;">
@@ -335,8 +365,8 @@ y= {{ y }}
         <img src="/static/img/floor3.svg" width="1043.1" height="530.7" style="position:absolute" id="map" >
         <div id="svg_map">
             <div id="svg_path"></div>
-            <img src="/static/img/people.jpg" style="position:absolute" id="1918E00103AA" title="1918E00103AA">
-            <img src="/static/img/people.jpg" style="position:absolute" id="1918E00103A9" title="1918E00103A9">
+            <img src="/static/img/people.png" style="position:absolute" id="1918E00103AA" title="1918E00103AA">
+            <img src="/static/img/people.png" style="position:absolute" id="1918E00103A9" title="1918E00103A9">
         </div>
     </div>
 </div>
