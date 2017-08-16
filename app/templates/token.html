@@ -23,6 +23,7 @@
 <script src="/static/js/jquery.svg.package-1.5.0/jquery.svg.js"></script>
 <script>
 
+    var hzX = 0, hzY = 0;   // 坐标系原点
 var margin = 0;
 var real_loc_to_pix = 0.0891;
 var map_w = 3477;       /// px
@@ -87,6 +88,11 @@ $(document).ready(function(){
 
             var svg = $('#svg_path').svg('get');
             svg.clear();
+            for ( var i = 0; i< pt_path.length; i++) {        // 转换坐标
+                pt_path[i][0] += hzX;
+                pt_path[i][1] += hzY;
+            }
+
             svg.polyline(pt_path, {fill: 'none', stroke: 'blue', strokeWidth: 4});
 
             storage['hz_is_navigating'] = true;
@@ -181,8 +187,8 @@ $(document).ready(function(){
 function hz_map_zoom(left, top, height, width, isAnimate) {
     isAnimate = isAnimate || true;     // 默认参数为true，执行动画
     $("#map").stop(true, true).animate({
-        left:left,
-        top:top,
+        left:left + hzX,
+        top:top + hzY,
         height:height,
         width:width
     });
@@ -195,8 +201,8 @@ function hz_people_goto(x, y, people) {
     people = people || '1918E00103AA';      // 设置默认参数
     /// 24, 45是定位图标的 针尖 位置。显示图片时，是以图片左上角为参考坐标。故需要对坐标进行偏移。
     $("#"+people).stop(true, true).animate({
-        left: (x - 24),
-        top: (y - 45)
+        left: (hzX + x - 24),
+        top: (hzY + y - 45)
     });
 }
 
@@ -204,8 +210,8 @@ function hz_people_go_no_animate(x, y, people) {
     people = people || '1918E00103AA';      // 设置默认参数
     /// 24, 45 是定位图标的 针尖 位置。显示图片时，是以图片左上角为参考坐标。故需要对坐标进行偏移。
     $("#"+people).animate({
-        left: x - 24,
-        top: y - 45
+        left: hzX + x - 24,
+        top: hzY + y - 45
     }).stop(true, true);
 }
 
@@ -216,6 +222,43 @@ function hz_clear_path() {
 $(function() {
 	$('#svg_map').svg({onLoad: drawInitial});
     $('#svg_path').svg({onLoad: drawIniPath()});
+
+    // pan map
+    var hzStillDown = false;
+    var hzCanvas = $("#floor3");
+    var hzOriginalX = 0,  hzOriginalY = 0;
+    hzCanvas.mousedown(function(event){
+        // console.log('div floor3 was clicked!' + event.pageX + ',' + event.pageY);
+        // console.log('offset:(' + event.offsetX + ',' + event.offsetY + ')');
+        hzStillDown = true;
+        hzOriginalX = event.offsetX;
+        hzOriginalY = event.offsetY;
+        $(this).css('cursor', 'move');
+    });
+
+    var hzCoords = [];
+    hzCanvas.mousemove(function(e){
+        if(!hzStillDown) return;
+        // console.log("moving");
+        hzCoords.push({x: e.offsetX, y: e.offsetY});
+        // and/or do whatever you need with the coordinates
+
+    });
+
+    hzCanvas.mouseup(function(e){
+        if (!hzStillDown) return;
+        hzStillDown = false;
+        hzX += e.offsetX - hzOriginalX;
+        hzY += e.offsetY - hzOriginalY;
+        $('#map').animate({
+            left: hzX,
+            top: hzY
+        });
+        $(this).css('cursor', 'default');
+        var svg = $('#svg_map').svg('get');
+        svg.clear();
+        drawInitial(svg);
+    });
 });
 
 function drawIniPath() {
@@ -224,7 +267,7 @@ function drawIniPath() {
 function drawInitial(svg) {
     var x_meeting_room = 1420;
     var y_meeting_room = 3000;
-    svg.text(parseInt(x_meeting_room*real_loc_to_pix*zoom), parseInt(y_meeting_room*real_loc_to_pix*zoom), '会议室');
+    svg.text(parseInt(x_meeting_room*real_loc_to_pix*zoom)+hzX, parseInt(y_meeting_room*real_loc_to_pix*zoom)+hzY, '会议室');
     transformDemo(svg);
 }
 
@@ -233,14 +276,14 @@ function transformDemo(svg) {
     var y_meeting_room = 4000;
 
     svg.describe('Example Skew - Show effects of skewX and skewY');
-    var str3 = 'translate(' +  parseInt(x_meeting_room*real_loc_to_pix*zoom) + ',' + parseInt(y_meeting_room*real_loc_to_pix*zoom) + ')';
+    var str3 = 'translate(' +  parseInt(x_meeting_room*real_loc_to_pix*zoom+hzX) + ',' + parseInt(y_meeting_room*real_loc_to_pix*zoom+hzY) + ')';
     var g1 = svg.group({transform: str3});
     var g2 = svg.group(g1, {transform: 'skewX(40)'});
     svg.text(g2, 0, 0, '会议室',
         {fontSize: 20, fontFamily: 'Verdana', fill: 'blue'});
 
     var y_manager1 = 8620;
-    var str4 = 'translate(' +  parseInt(x_meeting_room*real_loc_to_pix*zoom) + ',' + parseInt(y_manager1*real_loc_to_pix*zoom) + ')';
+    var str4 = 'translate(' +  parseInt(x_meeting_room*real_loc_to_pix*zoom+hzX) + ',' + parseInt(y_manager1*real_loc_to_pix*zoom+hzY) + ')';
     g1 = svg.group({transform: str4});
     g2 = svg.group(g1, {transform: 'skewY(30)'});
     svg.text(g2, 0, 0, '副总办公室1',
@@ -248,12 +291,12 @@ function transformDemo(svg) {
 
     var x_storage = 20000;
     var y_storage = 5000;
-    var str1 = 'translate(' +  parseInt(x_storage*real_loc_to_pix*zoom) + ',' + parseInt(y_storage*real_loc_to_pix*zoom) + ')';
+    var str1 = 'translate(' +  parseInt(x_storage*real_loc_to_pix*zoom+hzX) + ',' + parseInt(y_storage*real_loc_to_pix*zoom+hzY) + ')';
     g1 = svg.group({transform: str1});
     svg.text(g1, 0, 0, '仓  库',
         {fontSize: 16, fontFamily: 'Verdana'});
 
-    var str2 = 'translate(' +  parseInt(x_storage*real_loc_to_pix*zoom) + ',' + parseInt((y_storage+3000)*real_loc_to_pix*zoom) + ')';
+    var str2 = 'translate(' +  parseInt(x_storage*real_loc_to_pix*zoom+hzX) + ',' + parseInt((y_storage+3000)*real_loc_to_pix*zoom+hzY) + ')';
     g1 = svg.group({transform: str2});
     g2 = svg.group(g1, {transform: 'rotate(-45)'});
     svg.text(g2, 0, 0, '前  台',

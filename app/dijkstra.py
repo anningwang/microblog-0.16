@@ -107,7 +107,8 @@ def get_nearest_vertex(px, py):
     ret_vertex = -1     # -1 表示失败。>=0 ，则为合法顶点
     dd = INT_MAX
     # print "len(hz_vertex)=", len(hz_vertex), hz_vertex
-    for v in range(vertex_num):
+    # 去除12个房间内的坐标点
+    for v in range(vertex_num - 12):
         d1 = distance(px, py, float(hz_vertex[v]['x'])/GEO_SCALE, float(hz_vertex[v]['y'])/GEO_SCALE)
         if d1 < dd:
             dd = d1
