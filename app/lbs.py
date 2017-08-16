@@ -39,7 +39,7 @@ def job_get_token():
     url = "https://api.joysuch.com:46000/getAccessTokenV2"
 
     # refresh access token
-    if len(hz_token) > 0:
+    if len(hz_token) > 0 and (time_now - hz_token[0].timestamp).total_seconds() < hz_token[0].expires_in:
         url = "https://api.joysuch.com:46000/refreshAccessToken"
         test_data = {"refreshToken": hz_token[0].refresh_token}
 
