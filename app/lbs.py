@@ -32,15 +32,14 @@ HZ_UID = [TEST_UID, TEST_UID_2]
 def job_get_token():
     time_now = datetime.utcnow()
     hz_token = HzToken.query.all()
-    dt_time = (time_now - hz_token[0].timestamp).total_seconds()
-    if len(hz_token) > 0 and dt_time < hz_token[0].expires_in - JOB_INTERVAL - 60 * 10:
+    if len(hz_token) > 0 and (time_now - hz_token[0].timestamp).total_seconds() < hz_token[0].expires_in - JOB_INTERVAL - 60 * 10:
         return
 
     test_data = {"licence": HZ_LICENSE}
     url = "https://api.joysuch.com:46000/getAccessTokenV2"
 
     # refresh access token
-    if len(hz_token) == 0:
+    if len(hz_token) > 0:
         url = "https://api.joysuch.com:46000/refreshAccessToken"
         test_data = {"refreshToken": hz_token[0].refresh_token}
 
@@ -78,8 +77,7 @@ def job_get_location():
     time_now = datetime.utcnow()
     hz_token = HzToken.query.all()
     # 还没有获取过token，或者token过期
-    dt_time = (time_now - hz_token[0].timestamp).total_seconds()
-    if len(hz_token) == 0 and dt_time > hz_token[0].expires_in:
+    if len(hz_token) == 0 or (time_now - hz_token[0].timestamp).total_seconds() > hz_token[0].expires_in:
         return
 
     url = "https://api.joysuch.com:46000/WebLocate/locateResults"
