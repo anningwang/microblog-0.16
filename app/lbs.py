@@ -32,7 +32,7 @@ HZ_UID = [TEST_UID, TEST_UID_2]
 def job_get_token():
     time_now = datetime.utcnow()
     hz_token = HzToken.query.all()
-    if len(hz_token) > 0 and (time_now - hz_token[0].timestamp).total_seconds() < hz_token[0].expires_in - JOB_INTERVAL - 60 * 10:
+    if len(hz_token) > 0 and (time_now - hz_token[0].timestamp).total_seconds() < hz_token[0].expires_in - JOB_INTERVAL:
         return
 
     test_data = {"licence": HZ_LICENSE}
