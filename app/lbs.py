@@ -27,6 +27,15 @@ HZ_MAP_GEO_HEIGHT = 19854.09652076319
 # [{"name":"Floor3","mapImage":"Floor3.jpg","mapImageWidth":3477,"mapImageHeight":1769,"geoScale":{"x":89.1,"y":89.1}}]
 HZ_TEST_ADD_POS = False                 # 为真，则向数据库随机插入坐标点
 HZ_UID = [TEST_UID, TEST_UID_2]
+hz_uid_map = {}                         # 保存 uid 对应的最新坐标
+
+
+# 查询 每个ID对应的最新坐标
+def hz_get_new_pos():
+    hz_location = HzLocation.query.group_by(HzLocation.user_id)
+    for loc in hz_location:  # 如果存在，则获取最新的一个坐标
+        hz_uid_map[loc.user_id] = [loc.x, loc.y]
+    return hz_uid_map
 
 
 def job_get_token():
@@ -98,7 +107,17 @@ def job_get_location():
                                   timestamp=datetime.today())
             db.session.add(test_loc)
             db.session.commit()
+
+        if len(hz_uid_map) == 0:
+            hz_get_new_pos()
         for item in obj["data"]:
+            uid = item['userId']
+            x = item["xMillimeter"]
+            y = item["yMillimeter"]
+            if hz_uid_map.has_key(uid) and hz_uid_map[uid][0] == x and hz_uid_map[uid][1] == y:
+                # print "重复数据 x=", x, " y=", y, " uid=", uid
+                continue
+
             hz_location = HzLocation(build_id=item["buildId"],
                                      floor_no=item["floorNo"],
                                      user_id=item["userId"],
@@ -107,6 +126,7 @@ def job_get_location():
                                      timestamp=datetime.today())
             db.session.add(hz_location)
             db.session.commit()
+            hz_uid_map[uid] = [x, y]
     else:
         print "error in function job_get_location(): ", res
         print "url= ", url
