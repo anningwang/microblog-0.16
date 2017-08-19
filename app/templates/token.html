@@ -345,13 +345,14 @@ $(function() {
     hzCanvas.mouseup(function(e){
         if (!hzStillDown) return;
         hzStillDown = false;
+        $(this).css('cursor', 'default');
+        if (e.offsetX - hzOriginalX == 0 && e.offsetY - hzOriginalY == 0) return;
         hzX += e.offsetX - hzOriginalX;
         hzY += e.offsetY - hzOriginalY;
         $('#map').animate({
             left: hzX,
             top: hzY
         });
-        $(this).css('cursor', 'default');
         hz_change_item_in_map();
         /*
         var svg = $('#svg_map').svg('get');
