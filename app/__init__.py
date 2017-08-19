@@ -9,9 +9,17 @@ from flask_mail import Mail
 from flask_babel import Babel, lazy_gettext
 from config import basedir, ADMINS, MAIL_SERVER, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD
 from momentjs import momentjs
+from flask_socketio import SocketIO
+
+# Set this variable to "threading", "eventlet" or "gevent" to test the
+# different async modes, or leave it set to None for the application to choose
+# the best option based on installed packages.
+async_mode = None
 
 app = Flask(__name__)
 app.config.from_object('config')
+socketio = SocketIO(app, async_mode=async_mode)
+
 db = SQLAlchemy(app)
 lm = LoginManager()
 lm.init_app(app)
@@ -44,4 +52,3 @@ if not app.debug:
 app.jinja_env.globals['momentjs'] = momentjs
 
 from app import views, models
-
