@@ -66,7 +66,8 @@ def job_get_token():
         test_data = {"refreshToken": hz_token[0].refresh_token}
 
     data = json.dumps(test_data)
-    headers = {'Content-Type': 'application/json;charset=UTF-8'}
+    headers = {'Content-Type': 'application/json;charset=UTF-8',
+               'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0'}
     req = urllib2.Request(url=url, data=data, headers=headers)
     res_data = urllib2.urlopen(req)
     res = res_data.read()
@@ -106,7 +107,8 @@ def job_get_location():
     data = {'accessToken': hz_token[0].token,
             'userIds': HZ_UID,
             'timePeriod': 3000}
-    headers = {'Content-Type': 'application/json;charset=UTF-8'}
+    headers = {'Content-Type': 'application/json;charset=UTF-8',
+               'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0'}
     req = urllib2.Request(url=url, data=json.dumps(data), headers=headers)
     res_data = urllib2.urlopen(req)
     res = res_data.read()
