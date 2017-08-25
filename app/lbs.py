@@ -42,6 +42,8 @@ thread_lock = Lock()
 hz_apscheduler = None
 hz_apscheduler_lock = Lock()
 
+HZ_MSG_INVALID_ACCESS_TOKEN = 1060000           # Invalid AccessToken
+
 
 # 查询 每个ID对应的最新坐标
 def hz_get_new_pos():
@@ -89,6 +91,8 @@ def job_get_token():
             print "Update token:", hz_token[0], "at", time_now, "[END]"
             db.session.add(hz_token[0])
             db.session.commit()
+    elif obj['errorCode'] == HZ_MSG_INVALID_ACCESS_TOKEN:
+        hz_token[0].expires_in = 0
     else:
         print "error in function job_get_token(): ", res
         print "url= ", url
@@ -147,6 +151,11 @@ def job_get_location():
         # if len(hz_client_id) > 0 and len(pos_to_client) > 0:
             # print 'Notify position to client.', pos_to_client
             # socketio.emit('hz_position', pos_to_client, namespace=HZ_NAMESPACE)
+    elif obj['errorCode'] == HZ_MSG_INVALID_ACCESS_TOKEN:
+        hz_token[0].expires_in = 0
+        db.session.add(hz_token[0])
+        db.session.commit()
+        print 'token error!'
     else:
         print "error in function job_get_location(): ", res
         print "url= ", url
